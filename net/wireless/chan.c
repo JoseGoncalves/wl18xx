@@ -703,7 +703,7 @@ bool cfg80211_reg_can_beacon(struct wiphy *wiphy,
 	trace_cfg80211_reg_can_beacon(wiphy, chandef);
 
 	if (cfg80211_chandef_dfs_required(wiphy, chandef,
-					  NL80211_IFTYPE_UNSPECIFIED) > 0 &&
+					  NL80211_IFTYPE_AP) > 0 &&
 	    cfg80211_chandef_dfs_available(wiphy, chandef)) {
 		/* We can skip IEEE80211_CHAN_NO_IR if chandef dfs available */
 		prohibited_flags = IEEE80211_CHAN_DISABLED;
