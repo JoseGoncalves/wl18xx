@@ -3350,7 +3350,6 @@ int __ieee80211_channel_switch(struct wiphy *wiphy, struct net_device *dev,
 		return err;
 	}
 
-	sdata->csa_radar_required = params->radar_required;
 	sdata->csa_chandef = params->chandef;
 	sdata->csa_block_tx = params->block_tx;
 	sdata->vif.csa_active = true;
