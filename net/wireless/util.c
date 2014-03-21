@@ -789,6 +789,8 @@ void cfg80211_process_wdev_events(struct wireless_dev *wdev)
 	unsigned long flags;
 	const u8 *bssid = NULL;
 
+	ASSERT_RTNL();
+
 	spin_lock_irqsave(&wdev->event_lock, flags);
 	while (!list_empty(&wdev->event_list)) {
 		ev = list_first_entry(&wdev->event_list,
@@ -822,6 +824,9 @@ void cfg80211_process_wdev_events(struct wireless_dev *wdev)
 		case EVENT_IBSS_JOINED:
 			__cfg80211_ibss_joined(wdev->netdev, ev->ij.bssid,
 					       ev->ij.channel);
+			break;
+		case EVENT_STOPPED:
+			__cfg80211_leave(wiphy_to_dev(wdev->wiphy), wdev);
 			break;
 		}
 		wdev_unlock(wdev);

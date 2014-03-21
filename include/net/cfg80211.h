@@ -4705,6 +4705,21 @@ int cfg80211_check_combinations(struct wiphy *wiphy,
 				const u8 radar_detect,
 				const int iftype_num[NUM_NL80211_IFTYPES]);
 
+/*
+ * cfg80211_stop_iface - stop given interface
+ *
+ * @wiphy: the wiphy
+ * @wdev: wireless device
+ *
+ * Stop interface as if AP was stopped, IBSS/mesh left, STA disconnected.
+ *
+ * This is intended for channel switching and internal driver interface
+ * combination management.
+ *
+ * Note: This doesn't need any locks and is asynchronous.
+ */
+void cfg80211_stop_iface(struct wiphy *wiphy, struct wireless_dev *wdev);
+
 /* Logging, debugging and troubleshooting/diagnostic helpers. */
 
 /* wiphy_printk helpers, similar to dev_printk */
