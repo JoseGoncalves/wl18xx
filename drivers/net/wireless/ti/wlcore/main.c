@@ -1707,7 +1707,8 @@ out:
 }
 
 static int wl1271_configure_suspend_ap(struct wl1271 *wl,
-				       struct wl12xx_vif *wlvif)
+					struct wl12xx_vif *wlvif,
+					struct cfg80211_wowlan *wow)
 {
 	int ret = 0;
 
@@ -1719,7 +1720,14 @@ static int wl1271_configure_suspend_ap(struct wl1271 *wl,
 		goto out;
 
 	ret = wl1271_acx_beacon_filter_opt(wl, wlvif, true);
+	if (ret < 0)
+		goto out_sleep;
 
+	ret = wl1271_configure_wowlan(wl, wow);
+	if (ret < 0)
+		goto out_sleep;
+
+out_sleep:
 	wl1271_ps_elp_sleep(wl);
 out:
 	return ret;
@@ -1733,7 +1741,7 @@ static int wl1271_configure_suspend(struct wl1271 *wl,
 	if (wlvif->bss_type == BSS_TYPE_STA_BSS)
 		return wl1271_configure_suspend_sta(wl, wlvif, wow);
 	if (wlvif->bss_type == BSS_TYPE_AP_BSS)
-		return wl1271_configure_suspend_ap(wl, wlvif);
+		return wl1271_configure_suspend_ap(wl, wlvif, wow);
 	return 0;
 }
 
@@ -1754,8 +1762,6 @@ static void wl1271_configure_resume(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 		return;
 
 	if (is_sta) {
-		wl1271_configure_wowlan(wl, NULL);
-
 		if ((wl->conf.conn.suspend_wake_up_event ==
 		     wl->conf.conn.wake_up_event) &&
 		    (wl->conf.conn.suspend_listen_interval ==
@@ -1914,6 +1920,8 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
 		ieee80211_queue_work(wl->hw, &wl->recovery_work);
 		goto out;
 	}
+
+	wl1271_configure_wowlan(wl, NULL);
 
 	wl12xx_for_each_wlvif(wl, wlvif) {
 		if (wl12xx_wlvif_to_vif(wlvif)->dummy_p2p)
