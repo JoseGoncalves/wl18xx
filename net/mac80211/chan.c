@@ -964,6 +964,10 @@ ieee80211_vif_chanctx_reservation_complete(struct ieee80211_sub_if_data *sdata)
 		ieee80211_queue_work(&sdata->local->hw,
 				     &sdata->csa_finalize_work);
 		break;
+	case NL80211_IFTYPE_STATION:
+		ieee80211_queue_work(&sdata->local->hw,
+				     &sdata->u.mgd.chswitch_work);
+		break;
 	default:
 		break;
 	}
