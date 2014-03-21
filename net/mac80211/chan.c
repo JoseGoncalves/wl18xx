@@ -270,6 +270,7 @@ ieee80211_new_chanctx(struct ieee80211_local *local,
 	if (!ctx)
 		return ERR_PTR(-ENOMEM);
 
+	INIT_LIST_HEAD(&ctx->assigned_vifs);
 	ctx->conf.def = *chandef;
 	ctx->conf.rx_chains_static = 1;
 	ctx->conf.rx_chains_dynamic = 1;
@@ -414,6 +415,7 @@ static int ieee80211_assign_vif_chanctx(struct ieee80211_sub_if_data *sdata,
 		curr_ctx->refcount--;
 		drv_unassign_vif_chanctx(local, sdata, curr_ctx);
 		conf = NULL;
+		list_del(&sdata->assigned_chanctx_list);
 	}
 
 	if (new_ctx) {
@@ -423,6 +425,8 @@ static int ieee80211_assign_vif_chanctx(struct ieee80211_sub_if_data *sdata,
 
 		new_ctx->refcount++;
 		conf = &new_ctx->conf;
+		list_add(&sdata->assigned_chanctx_list,
+			 &new_ctx->assigned_vifs);
 	}
 
 out:
