@@ -1604,7 +1604,7 @@ netdev_tx_t ieee80211_monitor_start_xmit(struct sk_buff *skb,
 {
 	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
 	struct ieee80211_chanctx_conf *chanctx_conf;
-	struct ieee80211_channel *chan;
+	struct cfg80211_chan_def *chandef;
 	struct ieee80211_radiotap_header *prthdr =
 		(struct ieee80211_radiotap_header *)skb->data;
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
@@ -1707,9 +1707,9 @@ netdev_tx_t ieee80211_monitor_start_xmit(struct sk_buff *skb,
 	}
 
 	if (chanctx_conf)
-		chan = chanctx_conf->def.chan;
+		chandef = &chanctx_conf->def;
 	else if (!local->use_chanctx)
-		chan = local->_oper_chandef.chan;
+		chandef = &local->_oper_chandef;
 	else
 		goto fail_rcu;
 
@@ -1729,10 +1729,10 @@ netdev_tx_t ieee80211_monitor_start_xmit(struct sk_buff *skb,
 	 * radar detection by itself. We can do that later by adding a
 	 * monitor flag interfaces used for AP support.
 	 */
-	if ((chan->flags & (IEEE80211_CHAN_NO_IR | IEEE80211_CHAN_RADAR)))
+	if (!cfg80211_reg_can_beacon(local->hw.wiphy, chandef))
 		goto fail_rcu;
 
-	ieee80211_xmit(sdata, skb, chan->band);
+	ieee80211_xmit(sdata, skb, chandef->chan->band);
 	rcu_read_unlock();
 
 	return NETDEV_TX_OK;
