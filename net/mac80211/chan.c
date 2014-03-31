@@ -947,16 +947,18 @@ ieee80211_vif_use_reserved_incompat(struct ieee80211_local *local,
 	list_del_rcu(&ctx->list);
 	ieee80211_del_chanctx(local, ctx);
 
-	err = ieee80211_add_chanctx(local, new_ctx);
-	if (err)
-		goto err_revert;
-
 	/* don't simply overwrite radar_required in case of failure */
 	list_for_each_entry(sdata, &ctx->reserved_vifs, reserved_chanctx_list) {
 		bool tmp = sdata->radar_required;
 		sdata->radar_required = sdata->reserved_radar_required;
 		sdata->reserved_radar_required = tmp;
 	}
+
+	err = ieee80211_add_chanctx(local, new_ctx);
+	if (err)
+		goto err_revert;
+
+	ieee80211_recalc_radar_chanctx(local, new_ctx);
 
 	list_for_each_entry(sdata, &ctx->reserved_vifs, reserved_chanctx_list) {
 		err = drv_assign_vif_chanctx(local, sdata, new_ctx);
