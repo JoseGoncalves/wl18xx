@@ -23,6 +23,7 @@
 #include "../wlcore/debugfs.h"
 #include "../wlcore/wlcore.h"
 #include "../wlcore/debug.h"
+#include "../wlcore/ps.h"
 
 #include "wl18xx.h"
 #include "acx.h"
@@ -278,22 +279,26 @@ static ssize_t radar_detection_write(struct file *file,
 	int ret;
 	u8 channel;
 
-	mutex_lock(&wl->mutex);
-
-	if (unlikely(wl->state != WLCORE_STATE_ON))
-		goto out;
-
 	ret = kstrtou8_from_user(user_buf, count, 10, &channel);
 	if (ret < 0) {
 		wl1271_warning("illegal channel");
 		return -EINVAL;
 	}
 
-	ret = wlcore_radar_detection_debug(wl, channel);
-	if (ret < 0) {
-		count = ret;
+	mutex_lock(&wl->mutex);
+
+	if (unlikely(wl->state != WLCORE_STATE_ON))
 		goto out;
-	}
+
+	ret = wl1271_ps_elp_wakeup(wl);
+	if (ret < 0)
+		goto out;
+
+	ret = wlcore_radar_detection_debug(wl, channel);
+	if (ret < 0)
+		count = ret;
+
+	wl1271_ps_elp_sleep(wl);
 out:
 	mutex_unlock(&wl->mutex);
 	return count;
