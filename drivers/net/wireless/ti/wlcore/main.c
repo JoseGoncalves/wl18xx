@@ -1833,14 +1833,14 @@ static int wl1271_op_suspend(struct ieee80211_hw *hw,
 	/* if filtering is enabled, configure the FW to drop all RX BA frames */
 	ret = wlcore_hw_rx_ba_filter(wl,
 				     !!wl->conf.conn.suspend_rx_ba_activity);
-	if (ret < 0) {
+	if (ret < 0)
 		goto out_sleep;
 
 out_sleep:
 	wl1271_ps_elp_sleep(wl);
 	mutex_unlock(&wl->mutex);
 
-	if (ret < 0)
+	if (ret < 0) {
 		wl1271_warning("couldn't prepare device to suspend");
 		return ret;
 	}
