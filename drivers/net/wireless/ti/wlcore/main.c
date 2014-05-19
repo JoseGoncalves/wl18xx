@@ -1740,8 +1740,11 @@ static void wl1271_configure_resume(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 	if ((!is_ap) && (!is_sta))
 		return;
 
-	if (is_sta && !test_bit(WLVIF_FLAG_STA_ASSOCIATED, &wlvif->flags))
+	if ((is_sta && !test_bit(WLVIF_FLAG_STA_ASSOCIATED, &wlvif->flags)) ||
+	    (is_ap && !test_bit(WLVIF_FLAG_AP_STARTED, &wlvif->flags)))
 		return;
+
+	wl1271_configure_wowlan(wl, NULL);
 
 	if (is_sta) {
 		if ((wl->conf.conn.suspend_wake_up_event ==
@@ -1903,8 +1906,6 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
 		ieee80211_queue_work(wl->hw, &wl->recovery_work);
 		goto out_sleep;
 	}
-
-	wl1271_configure_wowlan(wl, NULL);
 
 	wl12xx_for_each_wlvif(wl, wlvif) {
 		if (wl12xx_wlvif_to_vif(wlvif)->dummy_p2p)
