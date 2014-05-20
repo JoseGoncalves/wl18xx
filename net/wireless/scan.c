@@ -300,7 +300,6 @@ EXPORT_SYMBOL(cfg80211_sched_scan_stopped);
 int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 			       bool driver_initiated)
 {
-	int err = 0;
 	struct net_device *dev;
 
 	ASSERT_RTNL();
@@ -311,15 +310,17 @@ int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 	dev = rdev->sched_scan_req->dev;
 
 	if (!driver_initiated) {
-		err = rdev->ops->sched_scan_stop(&rdev->wiphy, dev);
-	} else {
-		nl80211_send_sched_scan(rdev, dev,
-					NL80211_CMD_SCHED_SCAN_STOPPED);
-		kfree(rdev->sched_scan_req);
-		rdev->sched_scan_req = NULL;
+		int err = rdev_sched_scan_stop(rdev, dev);
+		if (err)
+			return err;
 	}
 
-	return err;
+	nl80211_send_sched_scan(rdev, dev, NL80211_CMD_SCHED_SCAN_STOPPED);
+
+	kfree(rdev->sched_scan_req);
+	rdev->sched_scan_req = NULL;
+
+	return 0;
 }
 
 void cfg80211_bss_age(struct cfg80211_registered_device *dev,
