@@ -1043,18 +1043,21 @@ ieee80211_vif_use_reserved_compat(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_local *local = sdata->local;
 	u32 changed = 0;
 	int err;
+	bool cur_radar = sdata->radar_required;
 
 	lockdep_assert_held(&local->mtx);
 	lockdep_assert_held(&local->chanctx_mtx);
 
 	list_del(&sdata->reserved_chanctx_list);
 	sdata->reserved_chanctx = NULL;
+	sdata->radar_required = sdata->reserved_radar_required;
 
 	err = ieee80211_assign_vif_chanctx(sdata, new_ctx);
 	if (ieee80211_chanctx_refcount(local, old_ctx) == 0)
 		ieee80211_free_chanctx(local, old_ctx);
 	if (err) {
 		/* if assign fails refcount stays the same */
+		sdata->radar_required = cur_radar;
 		if (ieee80211_chanctx_refcount(local, new_ctx) == 0)
 			ieee80211_free_chanctx(local, new_ctx);
 		goto out;
