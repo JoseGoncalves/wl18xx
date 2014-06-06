@@ -1879,10 +1879,6 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
 
 	mutex_lock(&wl->mutex);
 
-	ret = wl1271_ps_elp_wakeup(wl);
-	if (ret < 0)
-		goto out;
-
 	/* test the recovery flag before calling any SDIO functions */
 	pending_recovery = test_bit(WL1271_FLAG_RECOVERY_IN_PROGRESS,
 				    &wl->flags);
@@ -1906,6 +1902,10 @@ static int wl1271_op_resume(struct ieee80211_hw *hw)
 		ieee80211_queue_work(wl->hw, &wl->recovery_work);
 		goto out_sleep;
 	}
+
+	ret = wl1271_ps_elp_wakeup(wl);
+	if (ret < 0)
+		goto out;
 
 	wl12xx_for_each_wlvif(wl, wlvif) {
 		if (wl12xx_wlvif_to_vif(wlvif)->dummy_p2p)
