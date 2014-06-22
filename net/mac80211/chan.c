@@ -978,7 +978,6 @@ ieee80211_vif_use_reserved_incompat(struct ieee80211_local *local,
 		__ieee80211_vif_copy_chanctx_to_vlans(sdata, false);
 
 	list_add_rcu(&new_ctx->list, &local->chanctx_list);
-	kfree_rcu(ctx, rcu_head);
 
 	list_for_each_entry(sdata, &ctx->reserved_vifs,
 			    reserved_chanctx_list) {
@@ -1008,6 +1007,8 @@ ieee80211_vif_use_reserved_incompat(struct ieee80211_local *local,
 
 		ieee80211_vif_chanctx_reservation_complete(sdata);
 	}
+
+	kfree_rcu(ctx, rcu_head);
 
 	return 0;
 
