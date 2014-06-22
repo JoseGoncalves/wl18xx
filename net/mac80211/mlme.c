@@ -1484,6 +1484,9 @@ void ieee80211_dfs_cac_timer_work(struct work_struct *work)
 		    !cfg80211_chandef_identical(&chandef, cur_chandef))
 			continue;
 
+		if (sdata != sdata_wk)
+			cancel_delayed_work(&sdata->dfs_cac_timer_work);
+
 		ieee80211_vif_release_channel(sdata);
 		cfg80211_cac_event(sdata->dev, &chandef,
 				   NL80211_RADAR_CAC_FINISHED,
