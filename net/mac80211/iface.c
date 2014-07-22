@@ -1750,6 +1750,8 @@ void ieee80211_sdata_stop(struct ieee80211_sub_if_data *sdata)
 	ieee80211_teardown_sdata(sdata);
 }
 
+struct list_head unreg_list;
+
 /*
  * Remove all interfaces, may only be called at hardware unregistration
  * time because it doesn't do RCU-safe list removals.
@@ -1757,8 +1759,8 @@ void ieee80211_sdata_stop(struct ieee80211_sub_if_data *sdata)
 void ieee80211_remove_interfaces(struct ieee80211_local *local)
 {
 	struct ieee80211_sub_if_data *sdata, *tmp;
-	LIST_HEAD(unreg_list);
 	LIST_HEAD(wdev_list);
+	INIT_LIST_HEAD(&unreg_list);
 
 	ASSERT_RTNL();
 
@@ -1782,7 +1784,6 @@ void ieee80211_remove_interfaces(struct ieee80211_local *local)
 	}
 	mutex_unlock(&local->iflist_mtx);
 	unregister_netdevice_many(&unreg_list);
-	list_del(&unreg_list);
 
 	list_for_each_entry_safe(sdata, tmp, &wdev_list, list) {
 		list_del(&sdata->list);
