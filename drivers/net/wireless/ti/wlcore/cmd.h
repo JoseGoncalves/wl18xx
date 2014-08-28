@@ -651,6 +651,8 @@ struct wl12xx_cmd_regdomain_dfs_config {
 
 	__le32 ch_bit_map1;
 	__le32 ch_bit_map2;
+	u8 dfs_region;
+	u8 padding[3];
 } __packed;
 
 /* TODO: 18xx only */

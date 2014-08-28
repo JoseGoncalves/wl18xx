@@ -519,6 +519,9 @@ struct wl1271 {
 
 	u32 irq_count;
 	u32 irq_loop_count;
+
+	/* the current dfs region */
+	enum nl80211_dfs_regions dfs_region;
 };
 
 int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev);
