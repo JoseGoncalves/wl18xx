@@ -2397,6 +2397,10 @@ void ieee80211_dfs_radar_detected_work(struct work_struct *work)
 		container_of(work, struct ieee80211_local, radar_detected_work);
 	struct cfg80211_chan_def chandef = local->hw.conf.chandef;
 
+#ifdef CONFIG_MAC80211_DEBUGFS
+	if (local->debugfs.radar_debug_mode)
+		return;
+#endif
 	if (ieee80211_dfs_cac_cancel(local, NL80211_RADAR_DETECTED))
 		return;
 
