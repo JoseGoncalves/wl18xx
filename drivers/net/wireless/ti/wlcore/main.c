@@ -97,7 +97,8 @@ static void wl1271_reg_notify(struct wiphy *wiphy,
 	}
 
 	/* copy the current dfs region */
-	wl->dfs_region = request->dfs_region;
+	if (request)
+		wl->dfs_region = request->dfs_region;
 
 	wlcore_regdomain_config(wl);
 }
