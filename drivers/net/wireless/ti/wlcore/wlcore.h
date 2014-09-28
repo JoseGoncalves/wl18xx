@@ -522,6 +522,7 @@ struct wl1271 {
 
 	/* the current dfs region */
 	enum nl80211_dfs_regions dfs_region;
+	bool radar_debug_mode;
 };
 
 int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev);
