@@ -421,9 +421,6 @@ void debugfs_hw_add(struct ieee80211_local *local)
 	DEBUGFS_ADD(user_power);
 	DEBUGFS_ADD(power);
 
-	debugfs_create_bool("radar_debug_mode", 0600, phyd,
-			    &local->debugfs.radar_debug_mode);
-
 	statsd = debugfs_create_dir("statistics", phyd);
 
 	/* if the dir failed, don't put all the other things into the root! */

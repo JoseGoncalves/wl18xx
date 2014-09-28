@@ -1243,7 +1243,6 @@ struct ieee80211_local {
 	struct local_debugfsdentries {
 		struct dentry *rcdir;
 		struct dentry *keys;
-		u32 radar_debug_mode;
 	} debugfs;
 #endif
 
