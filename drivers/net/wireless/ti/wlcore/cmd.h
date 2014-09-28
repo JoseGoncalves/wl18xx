@@ -96,6 +96,8 @@ int wlcore_cmd_regdomain_config_locked(struct wl1271 *wl);
 int wlcore_set_cac(struct wl1271 *wl, struct wl12xx_vif *wlvif, bool start);
 int wlcore_radar_detection_debug(struct wl1271 *wl, u8 channel);
 int wlcore_cmd_dfs_master_restart(struct wl1271 *wl, struct wl12xx_vif *wlvif);
+int wlcore_cmd_generic_cfg(struct wl1271 *wl, struct wl12xx_vif *wlvif,
+			   u8 feature, u8 enable, u8 value);
 int wl12xx_cmd_config_fwlog(struct wl1271 *wl);
 int wl12xx_cmd_start_fwlog(struct wl1271 *wl);
 int wl12xx_cmd_stop_fwlog(struct wl1271 *wl);
@@ -678,6 +680,17 @@ struct wlcore_cmd_cac_start {
 	u8 channel;
 	u8 band;
 	u8 bandwidth;
+} __packed;
+
+enum wlcore_generic_cfg_feature {
+	WLCORE_CFG_FEATURE_RADAR_DEBUG = 2,
+};
+
+struct wlcore_cmd_generic_cfg {
+	u8 role_id;
+	u8 feature;
+	u8 enable;
+	u8 value;
 } __packed;
 
 struct wl12xx_cmd_config_fwlog {
