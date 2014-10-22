@@ -226,10 +226,9 @@ static struct wl12xx_platform_data *wlcore_probe_of(struct device *dev)
 
 	if (!np || !of_device_is_compatible(np, "ti,wlcore")) {
 		np = of_find_compatible_node(NULL, NULL, "ti,wlcore");
-		if (!np) {
-			dev_err(dev, "No platform data set\n");
+		if (!np)
 			return NULL;
-		}
+
 		need_put_node = true;
 	}
 
