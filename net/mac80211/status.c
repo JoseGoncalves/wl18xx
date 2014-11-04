@@ -710,7 +710,7 @@ void ieee80211_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 	if (info->flags & IEEE80211_TX_STAT_ACK) {
 		if (ieee80211_is_first_frag(hdr->seq_ctrl)) {
 			local->dot11TransmittedFrameCount++;
-			if (is_multicast_ether_addr(hdr->addr1))
+			if (is_multicast_ether_addr(ieee80211_get_DA(hdr)))
 				local->dot11MulticastTransmittedFrameCount++;
 			if (retry_count > 0)
 				local->dot11RetryCount++;
