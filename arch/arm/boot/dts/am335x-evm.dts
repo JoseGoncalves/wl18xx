@@ -45,8 +45,8 @@
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;
 
-		/* WLAN_EN GPIO for this board - Bank1, pin16 */
-		gpio = <&gpio1 16 0>;
+		/* WLAN_EN GPIO for this board - Bank3, pin16 */
+		gpio = <&gpio3 16 0>;
 
 		/* WLAN card specific delay */
 		startup-delay-us = <70000>;
@@ -303,6 +303,7 @@
 		>;
 	};
 
+	/* wl12xx/wl18xx card on mmc3 */
 	mmc3_pins: pinmux_mmc3_pins {
 		pinctrl-single,pins = <
 			0x44 (PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a1.mmc2_dat0, INPUT_PULLUP | MODE3 */
@@ -314,6 +315,7 @@
 		>;
 	};
 
+	/* wl12xx/wl18xx card enable/irq GPIOs. */
 	wlan_pins: pinmux_wlan_pins {
 		pinctrl-single,pins = <
 			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a0.gpio1_16 */
@@ -758,11 +760,12 @@
 
 	#address-cells = <1>;
 	#size-cells = <0>;
-	wlcore: wlcore@0 {
+	wlcore: wlcore@2 {
 		compatible = "ti,wl1835";
 		reg = <2>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <19 IRQ_TYPE_LEVEL_HIGH>;
+		ref-clock-frequency = <38400000>;
 	};
 };
 
