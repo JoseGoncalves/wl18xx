@@ -2297,6 +2297,7 @@ static int wl12xx_init_vif_data(struct wl1271 *wl, struct ieee80211_vif *vif)
 		wlvif->p2p = 1;
 		/* fall-through */
 	case NL80211_IFTYPE_AP:
+	case NL80211_IFTYPE_MESH_POINT:
 		wlvif->bss_type = BSS_TYPE_AP_BSS;
 		break;
 	default:
@@ -4223,9 +4224,14 @@ static void wl1271_bss_info_changed_ap(struct wl1271 *wl,
 		if (ret < 0)
 			goto out;
 
-		ret = wl1271_ap_set_probe_resp_tmpl(wl, wlvif->basic_rate, vif);
-		if (ret < 0)
-			goto out;
+		/* No need to set probe resp template for mesh */
+		if (!ieee80211_vif_is_mesh(vif)) {
+			ret = wl1271_ap_set_probe_resp_tmpl(wl,
+							    wlvif->basic_rate,
+							    vif);
+			if (ret < 0)
+				goto out;
+		}
 
 		ret = wlcore_set_beacon_template(wl, vif, true);
 		if (ret < 0)
@@ -5051,6 +5057,7 @@ static int wl12xx_sta_add(struct wl1271 *wl,
 	struct wl1271_station *wl_sta;
 	int ret = 0;
 	u8 hlid;
+	struct ieee80211_vif *vif = wl12xx_wlvif_to_vif(wlvif);
 
 	wl1271_debug(DEBUG_MAC80211, "mac80211 add sta %d", (int)sta->aid);
 
@@ -5061,6 +5068,11 @@ static int wl12xx_sta_add(struct wl1271 *wl,
 	wl_sta = (struct wl1271_station *)sta->drv_priv;
 	hlid = wl_sta->hlid;
 
+	if (ieee80211_vif_is_mesh(vif)) {
+		sta->aid = 1;
+		wl1271_debug(DEBUG_MAC80211, "Updated aid for mesh %d", (
+			int)sta->aid);
+	}
 	ret = wl12xx_cmd_add_peer(wl, wlvif, sta, hlid);
 	if (ret < 0)
 		wl1271_free_sta(wl, wlvif, hlid);
@@ -6224,7 +6236,8 @@ static int wl1271_init_ieee80211(struct wl1271 *wl)
 					 BIT(NL80211_IFTYPE_AP) |
 					 BIT(NL80211_IFTYPE_P2P_DEVICE) |
 					 BIT(NL80211_IFTYPE_P2P_CLIENT) |
-					 BIT(NL80211_IFTYPE_P2P_GO);
+					 BIT(NL80211_IFTYPE_P2P_GO) |
+					 BIT(NL80211_IFTYPE_MESH_POINT);
 	wl->hw->wiphy->max_scan_ssids = 1;
 	wl->hw->wiphy->max_sched_scan_ssids = 16;
 	wl->hw->wiphy->max_match_sets = 16;
