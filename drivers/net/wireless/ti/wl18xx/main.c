@@ -1828,6 +1828,10 @@ static const struct ieee80211_iface_limit wl18xx_iface_ap_limits[] = {
 	},
 	{
 		.max = 1,
+		.types = BIT(NL80211_IFTYPE_MESH_POINT),
+	},
+	{
+		.max = 1,
 		.types = BIT(NL80211_IFTYPE_P2P_DEVICE),
 	},
 };
