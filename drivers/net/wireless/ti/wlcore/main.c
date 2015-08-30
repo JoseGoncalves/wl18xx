@@ -2252,10 +2252,14 @@ static void wlcore_free_klv_template(struct wl1271 *wl, u8 *idx)
 
 static u8 wl12xx_get_role_type(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 {
+	struct ieee80211_vif *vif = wl12xx_wlvif_to_vif(wlvif);
+
 	switch (wlvif->bss_type) {
 	case BSS_TYPE_AP_BSS:
 		if (wlvif->p2p)
 			return WL1271_ROLE_P2P_GO;
+		else if (ieee80211_vif_is_mesh(vif))
+			return WL1271_ROLE_MESH_POINT;
 		else
 			return WL1271_ROLE_AP;
 
