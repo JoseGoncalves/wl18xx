@@ -2419,6 +2419,25 @@ static inline bool ieee80211_is_robust_mgmt_frame(struct sk_buff *skb)
 	return _ieee80211_is_robust_mgmt_frame((void *)skb->data);
 }
 
+static inline bool ieee80211_is_not_group_privacy(struct ieee80211_hdr *hdr)
+{
+	if (ieee80211_is_action(hdr->frame_control)) {
+		u8 *category;
+
+		/*
+		 * Action frames, excluding Public Action frames, are Robust
+		 * Management Frames. However, if we are looking at a Protected
+		 * frame, skip the check since the data may be encrypted and
+		 * the frame has already been found to be a Robust Management
+		 * Frame (by the other end).
+		 */
+		category = ((u8 *)hdr) + 24;
+		return *category != WLAN_CATEGORY_MESH_ACTION &&
+			*category != WLAN_CATEGORY_MULTIHOP_ACTION;
+	}
+
+	return true;
+}
 /**
  * ieee80211_is_public_action - check if frame is a public action frame
  * @hdr: the frame
