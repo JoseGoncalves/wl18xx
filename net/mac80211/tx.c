@@ -460,12 +460,19 @@ ieee80211_tx_h_multicast_ps_buf(struct ieee80211_tx_data *tx)
 static int ieee80211_use_mfp(__le16 fc, struct sta_info *sta,
 			     struct sk_buff *skb)
 {
+
+	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+
 	if (!ieee80211_is_mgmt(fc))
 		return 0;
 
-	if (sta == NULL || !test_sta_flag(sta, WLAN_STA_MFP))
-		return 0;
-
+	if (is_multicast_ether_addr(hdr->addr1)) {
+		if (!ieee80211_is_not_group_privacy(hdr))
+			return 1;
+	} else {
+		if (sta == NULL || !test_sta_flag(sta, WLAN_STA_MFP))
+			return 0;
+	}
 	if (!ieee80211_is_robust_mgmt_frame(skb))
 		return 0;
 
@@ -621,13 +628,14 @@ ieee80211_tx_h_select_key(struct ieee80211_tx_data *tx)
 		case WLAN_CIPHER_SUITE_GCMP:
 		case WLAN_CIPHER_SUITE_GCMP_256:
 			if (!ieee80211_is_data_present(hdr->frame_control) &&
-			    !ieee80211_use_mfp(hdr->frame_control, tx->sta,
-					       tx->skb))
+			!ieee80211_use_mfp(hdr->frame_control, tx->sta,
+					tx->skb))
 				tx->key = NULL;
 			else
 				skip_hw = (tx->key->conf.flags &
-					   IEEE80211_KEY_FLAG_SW_MGMT_TX) &&
+					IEEE80211_KEY_FLAG_SW_MGMT_TX) &&
 					ieee80211_is_mgmt(hdr->frame_control);
+
 			break;
 		case WLAN_CIPHER_SUITE_AES_CMAC:
 		case WLAN_CIPHER_SUITE_BIP_CMAC_256:
