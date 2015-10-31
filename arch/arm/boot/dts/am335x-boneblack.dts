@@ -86,3 +86,5 @@
 &rtc {
 	system-power-controller;
 };
+
+#include "am335x-bone-wl1837.dtsi"
