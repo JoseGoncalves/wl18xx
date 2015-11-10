@@ -173,7 +173,7 @@ struct wl_fw_status {
 		u8 tx_voice_released_blks;
 
 		/* Tx rate of the last transmitted packet */
-		u8 tx_last_rate;
+		u8 tx_last_rate[2];
 	} counters;
 
 	u32 log_start_addr;
@@ -277,6 +277,9 @@ struct wl1271_link {
 
 	/* bitmap of TIDs where RX BA sessions are active for this link */
 	u8 ba_bitmap;
+
+	/* the last rate we used for this link */
+	u8 rate;
 
 	/* The wlvif this link belongs to. Might be null for global links */
 	struct wl12xx_vif *wlvif;

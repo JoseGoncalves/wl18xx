@@ -123,9 +123,9 @@ struct wl18xx_fw_packet_counters {
 	u8 tx_voice_released_blks;
 
 	/* Tx rate of the last transmitted packet */
-	u8 tx_last_rate;
+	u8 tx_last_rate[2];
 
-	u8 padding[2];
+	u8 padding[1];
 } __packed;
 
 /* FW status registers */

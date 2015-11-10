@@ -1462,7 +1462,7 @@ static void wl12xx_convert_fw_status(struct wl1271 *wl, void *raw_fw_status,
 			int_fw_status->counters.tx_lnk_free_pkts;
 	fw_status->counters.tx_voice_released_blks =
 			int_fw_status->counters.tx_voice_released_blks;
-	fw_status->counters.tx_last_rate =
+	fw_status->counters.tx_last_rate[0] =
 			int_fw_status->counters.tx_last_rate;
 
 	fw_status->log_start_addr = le32_to_cpu(int_fw_status->log_start_addr);
