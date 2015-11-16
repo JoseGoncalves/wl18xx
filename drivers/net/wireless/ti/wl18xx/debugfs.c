@@ -382,12 +382,68 @@ static ssize_t time_sync_write(struct file *file,
 }
 
 static const struct file_operations time_sync_ops = {
-    .write  = time_sync_write,
-    .open   = simple_open,
-    .llseek = default_llseek,
+	.write  = time_sync_write,
+	.open   = simple_open,
+	.llseek = default_llseek,
 };
 
+static ssize_t time_sync_zone_addr_write(struct file *file,
+					 const char __user *user_buf,
+					 size_t count, loff_t *ppos) {
+	struct wl1271 *wl = file->private_data;
+	char buf[(ETH_ALEN * 2)];
+	int ret;
 
+	if (count < (ETH_ALEN * 2 + 1)) {
+		wl1271_warning("Illegal MAC address: wrong size");
+		return -EINVAL;
+	}
+
+	ret = copy_from_user(buf, user_buf, (ETH_ALEN * 2));
+	if (ret < 0)
+		return ret;
+
+	ret = hex2bin(wl->zone_master_mac_addr, buf, ETH_ALEN);
+	if (ret < 0) {
+		wl1271_warning("Illegal MAC address: invalid characters");
+		return ret;
+	}
+
+	mutex_lock(&wl->mutex);
+
+	if (unlikely(wl->state != WLCORE_STATE_ON))
+		goto out;
+
+	ret = wl1271_ps_elp_wakeup(wl);
+	if (ret < 0)
+		goto out;
+
+	ret = wl18xx_acx_time_sync_cfg(wl);
+	if (ret < 0)
+		count = ret;
+
+	wl1271_ps_elp_sleep(wl);
+out:
+	mutex_unlock(&wl->mutex);
+	return count;
+}
+
+static ssize_t time_sync_zone_addr_read(struct file *file,
+					char __user *userbuf,
+					size_t count, loff_t *ppos)
+{
+	struct wl1271 *wl = file->private_data;
+
+	return wl1271_format_buffer(userbuf, count, ppos,
+					"%pM\n", wl->zone_master_mac_addr);
+}
+
+static const struct file_operations time_sync_zone_addr_ops = {
+	.write  = time_sync_zone_addr_write,
+	.read = time_sync_zone_addr_read,
+	.open   = simple_open,
+	.llseek = default_llseek,
+};
 
 int wl18xx_debugfs_add_files(struct wl1271 *wl,
 			     struct dentry *rootdir)
@@ -555,6 +611,7 @@ int wl18xx_debugfs_add_files(struct wl1271 *wl,
 	DEBUGFS_ADD(conf, moddir);
 	DEBUGFS_ADD(radar_detection, moddir);
 	DEBUGFS_ADD(time_sync, moddir);
+	DEBUGFS_ADD(time_sync_zone_addr, moddir);
 	DEBUGFS_ADD(dynamic_fw_traces, moddir);
 
 	return 0;
