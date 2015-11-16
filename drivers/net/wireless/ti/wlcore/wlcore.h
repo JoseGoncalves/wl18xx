@@ -519,6 +519,9 @@ struct wl1271 {
 
 	/* time sync timer */
 	struct wlcore_time_sync time_sync;
+
+	/* time sync zone master */
+	u8 zone_master_mac_addr[ETH_ALEN];
 };
 
 int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev);
