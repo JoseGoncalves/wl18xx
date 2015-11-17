@@ -787,7 +787,6 @@ static void mesh_path_node_reclaim(struct rcu_head *rp)
 
 	del_timer_sync(&node->mpath->timer);
 	del_timer_sync(&node->mpath->mesh_delayed_prep_timer);
-	atomic_dec(&sdata->u.mesh.mpaths);
 	kfree(node->mpath);
 	kfree(node);
 }
