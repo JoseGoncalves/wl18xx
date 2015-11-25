@@ -1607,26 +1607,30 @@ static void wl18xx_sta_rc_update(struct wl1271 *wl,
 				 struct wl12xx_vif *wlvif)
 {
 	bool wide = wlvif->rc_update_bw >= IEEE80211_STA_RX_BW_40;
+	struct ieee80211_vif *vif = wl12xx_wlvif_to_vif(wlvif);
 
 	wl1271_debug(DEBUG_MAC80211, "mac80211 sta_rc_update wide %d", wide);
 
 	/* sanity */
-	if (WARN_ON(wlvif->bss_type != BSS_TYPE_STA_BSS))
+	if ( WARN_ON((wlvif->bss_type != BSS_TYPE_STA_BSS) && (!ieee80211_vif_is_mesh(vif))) )
 		return;
 
-	/* ignore the change before association */
-	if (!test_bit(WLVIF_FLAG_STA_ASSOCIATED, &wlvif->flags))
-		return;
+	if(wlvif->bss_type == BSS_TYPE_STA_BSS)
+		/* ignore the change before association */
+		if (!test_bit(WLVIF_FLAG_STA_ASSOCIATED, &wlvif->flags))
+			return;
 
 	/*
 	 * If we started out as wide, we can change the operation mode. If we
 	 * thought this was a 20mhz AP, we have to reconnect
 	 */
 	if (wlvif->sta.role_chan_type == NL80211_CHAN_HT40MINUS ||
-	    wlvif->sta.role_chan_type == NL80211_CHAN_HT40PLUS)
-		wl18xx_acx_peer_ht_operation_mode(wl, wlvif->sta.hlid, wide);
-	else
-		ieee80211_connection_loss(wl12xx_wlvif_to_vif(wlvif));
+	    wlvif->sta.role_chan_type == NL80211_CHAN_HT40PLUS)	{
+        if(!wide)
+			wl18xx_acx_peer_ht_operation_mode(wl, wlvif->sta.hlid, wide);
+	}
+	else if(wide)
+			ieee80211_connection_loss(wl12xx_wlvif_to_vif(wlvif));
 }
 
 static int wl18xx_set_peer_cap(struct wl1271 *wl,
