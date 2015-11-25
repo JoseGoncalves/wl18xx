@@ -1745,11 +1745,13 @@ static struct wlcore_ops wl18xx_ops = {
 	.dfs_master_restart	= wl18xx_cmd_dfs_master_restart,
 };
 
+/** Setting IEEE80211_HT_CAP_SM_PS in the ht_cap means to disable the SMPS **/
 /* HT cap appropriate for wide channels in 2Ghz */
 static struct ieee80211_sta_ht_cap wl18xx_siso40_ht_cap_2ghz = {
 	.cap = IEEE80211_HT_CAP_SGI_20 | IEEE80211_HT_CAP_SGI_40 |
 	       IEEE80211_HT_CAP_SUP_WIDTH_20_40 | IEEE80211_HT_CAP_DSSSCCK40 |
-	       IEEE80211_HT_CAP_GRN_FLD,
+	       IEEE80211_HT_CAP_GRN_FLD |
+	       (WLAN_HT_CAP_SM_PS_DISABLED << IEEE80211_HT_CAP_SM_PS_SHIFT),
 	.ht_supported = true,
 	.ampdu_factor = IEEE80211_HT_MAX_AMPDU_16K,
 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
@@ -1764,7 +1766,8 @@ static struct ieee80211_sta_ht_cap wl18xx_siso40_ht_cap_2ghz = {
 static struct ieee80211_sta_ht_cap wl18xx_siso40_ht_cap_5ghz = {
 	.cap = IEEE80211_HT_CAP_SGI_20 | IEEE80211_HT_CAP_SGI_40 |
 	       IEEE80211_HT_CAP_SUP_WIDTH_20_40 |
-	       IEEE80211_HT_CAP_GRN_FLD,
+	       IEEE80211_HT_CAP_GRN_FLD |
+	       (WLAN_HT_CAP_SM_PS_DISABLED << IEEE80211_HT_CAP_SM_PS_SHIFT),
 	.ht_supported = true,
 	.ampdu_factor = IEEE80211_HT_MAX_AMPDU_16K,
 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
@@ -1778,7 +1781,8 @@ static struct ieee80211_sta_ht_cap wl18xx_siso40_ht_cap_5ghz = {
 /* HT cap appropriate for SISO 20 */
 static struct ieee80211_sta_ht_cap wl18xx_siso20_ht_cap = {
 	.cap = IEEE80211_HT_CAP_SGI_20 |
-	       IEEE80211_HT_CAP_GRN_FLD,
+	       IEEE80211_HT_CAP_GRN_FLD |
+	       (WLAN_HT_CAP_SM_PS_DISABLED << IEEE80211_HT_CAP_SM_PS_SHIFT),
 	.ht_supported = true,
 	.ampdu_factor = IEEE80211_HT_MAX_AMPDU_16K,
 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
@@ -1792,7 +1796,8 @@ static struct ieee80211_sta_ht_cap wl18xx_siso20_ht_cap = {
 /* HT cap appropriate for MIMO rates in 20mhz channel */
 static struct ieee80211_sta_ht_cap wl18xx_mimo_ht_cap_2ghz = {
 	.cap = IEEE80211_HT_CAP_SGI_20 |
-	       IEEE80211_HT_CAP_GRN_FLD,
+	       IEEE80211_HT_CAP_GRN_FLD |
+	       (WLAN_HT_CAP_SM_PS_DISABLED << IEEE80211_HT_CAP_SM_PS_SHIFT),
 	.ht_supported = true,
 	.ampdu_factor = IEEE80211_HT_MAX_AMPDU_16K,
 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
