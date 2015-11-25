@@ -5077,11 +5077,6 @@ static int wl12xx_sta_add(struct wl1271 *wl,
 	wl_sta = (struct wl1271_station *)sta->drv_priv;
 	hlid = wl_sta->hlid;
 
-	if (ieee80211_vif_is_mesh(vif)) {
-		sta->aid = 1;
-		wl1271_debug(DEBUG_MAC80211, "Updated aid for mesh %d", (
-			int)sta->aid);
-	}
 	ret = wl12xx_cmd_add_peer(wl, wlvif, sta, hlid);
 	if (ret < 0)
 		wl1271_free_sta(wl, wlvif, hlid);
