@@ -5066,7 +5066,6 @@ static int wl12xx_sta_add(struct wl1271 *wl,
 	struct wl1271_station *wl_sta;
 	int ret = 0;
 	u8 hlid;
-	struct ieee80211_vif *vif = wl12xx_wlvif_to_vif(wlvif);
 
 	wl1271_debug(DEBUG_MAC80211, "mac80211 add sta %d", (int)sta->aid);
 
