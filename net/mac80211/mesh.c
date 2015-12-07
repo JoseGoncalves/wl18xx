@@ -162,7 +162,8 @@ void mesh_sta_cleanup(struct sta_info *sta)
 	if (!sdata->u.mesh.user_mpm) {
 		changed |= mesh_plink_deactivate(sta);
 		del_timer_sync(&sta->mesh->plink_timer);
-	}
+	} else
+		mesh_path_flush_by_nexthop(sta);
 
 	if (changed)
 		ieee80211_mbss_info_change_notify(sdata, changed);
