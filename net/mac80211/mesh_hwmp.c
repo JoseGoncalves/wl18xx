@@ -12,6 +12,7 @@
 #include <asm/unaligned.h>
 #include "wme.h"
 #include "mesh.h"
+#include "driver-ops.h"
 
 #define TEST_FRAME_LEN	8192
 #define MAX_METRIC	0xffffffff
@@ -295,6 +296,8 @@ int mesh_path_error_tx(struct ieee80211_sub_if_data *sdata,
 	return 0;
 }
 
+
+
 void ieee80211s_update_metric(struct ieee80211_local *local,
 		struct sta_info *sta, struct sk_buff *skb)
 {
@@ -329,8 +332,12 @@ static u32 airtime_link_metric_get(struct ieee80211_local *local,
 	if (sta->mesh->fail_avg >= 100)
 		return MAX_METRIC;
 
+	sta->tx_stats.last_rate.idx = drv_get_rate_info(local, &sta->sta);
+
 	sta_set_rate_info_tx(sta, &sta->tx_stats.last_rate, &rinfo);
+
 	rate = cfg80211_calculate_bitrate(&rinfo);
+
 	if (WARN_ON(!rate))
 		return MAX_METRIC;
 
@@ -342,6 +349,7 @@ static u32 airtime_link_metric_get(struct ieee80211_local *local,
 	tx_time = (device_constant + 10 * test_frame_len / rate);
 	estimated_retx = ((1 << (2 * ARITH_SHIFT)) / (s_unit - err));
 	result = (tx_time * estimated_retx) >> (2 * ARITH_SHIFT) ;
+
 	return (u32)result;
 }
 

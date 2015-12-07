@@ -28,11 +28,12 @@
 #include "wl18xx.h"
 #include "tx.h"
 
+
 static
 void wl18xx_get_last_tx_rate(struct wl1271 *wl, struct ieee80211_vif *vif,
 			     u8 band, struct ieee80211_tx_rate *rate, u8 hlid)
 {
-	u8 fw_rate = wl->links[hlid].rate;
+	u8 fw_rate = wl->links[hlid].fw_rate;
 
 	if (fw_rate > CONF_HW_RATE_INDEX_MAX) {
 		wl1271_error("last Tx rate invalid: %d", fw_rate);
@@ -71,6 +72,7 @@ void wl18xx_get_last_tx_rate(struct wl1271 *wl, struct ieee80211_vif *vif,
 			}
 		}
 	}
+	wl->links[hlid].drv_rate = rate->idx;
 }
 
 static void wl18xx_tx_complete_packet(struct wl1271 *wl, u8 tx_stat_byte)
@@ -155,10 +157,12 @@ void wl18xx_tx_immediate_complete(struct wl1271 *wl)
 		return;
 
 	/* update rates per link */
-
-	rate = wl->fw_status->counters.tx_last_rate[0];
 	hlid = wl->fw_status->counters.tx_last_rate[1];
-	wl->links[hlid].rate = rate;
+
+	if (hlid < WLCORE_MAX_LINKS) {
+		rate = wl->fw_status->counters.tx_last_rate[0];
+		wl->links[hlid].fw_rate = rate;
+	}
 
 	/* freed Tx descriptors */
 	wl1271_debug(DEBUG_TX, "last released desc = %d, current idx = %d",

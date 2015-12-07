@@ -5830,6 +5830,16 @@ out:
 	mutex_unlock(&wl->mutex);
 }
 
+static s8 wlcore_op_get_rate_info(struct ieee80211_hw *hw,
+			struct ieee80211_sta *sta)
+{
+	struct wl1271 *wl = hw->priv;
+	struct wl1271_station *wl_sta = (struct wl1271_station *)sta->drv_priv;
+	u8 hlid = wl_sta->hlid;
+
+	return wl->links[hlid].drv_rate;
+}
+
 static bool wl1271_tx_frames_pending(struct ieee80211_hw *hw)
 {
 	struct wl1271 *wl = hw->priv;
@@ -6030,6 +6040,7 @@ static const struct ieee80211_ops wl1271_ops = {
 	.switch_vif_chanctx = wlcore_op_switch_vif_chanctx,
 	.sta_rc_update = wlcore_op_sta_rc_update,
 	.sta_statistics = wlcore_op_sta_statistics,
+	.get_rate_info = wlcore_op_get_rate_info,
 	CFG80211_TESTMODE_CMD(wl1271_tm_cmd)
 };
 

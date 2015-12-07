@@ -307,3 +307,10 @@ int drv_ampdu_action(struct ieee80211_local *local,
 
 	return ret;
 }
+
+s8 drv_get_rate_info(struct ieee80211_local *local,
+	       struct ieee80211_sta *sta)
+{
+	return local->ops->get_rate_info(&local->hw, sta);
+}
+

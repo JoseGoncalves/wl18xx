@@ -1166,4 +1166,7 @@ static inline void drv_wake_tx_queue(struct ieee80211_local *local,
 	local->ops->wake_tx_queue(&local->hw, &txq->txq);
 }
 
+s8 drv_get_rate_info(struct ieee80211_local *local,
+	       struct ieee80211_sta *sta);
+
 #endif /* __MAC80211_DRIVER_OPS */

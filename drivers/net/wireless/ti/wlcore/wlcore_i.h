@@ -278,8 +278,11 @@ struct wl1271_link {
 	/* bitmap of TIDs where RX BA sessions are active for this link */
 	u8 ba_bitmap;
 
-	/* the last rate we used for this link */
-	u8 rate;
+	/* the last fw rate we used for this link */
+	u8 fw_rate;
+
+	/* conversion between fw rate to driver rate */
+	s8 drv_rate;
 
 	/* The wlvif this link belongs to. Might be null for global links */
 	struct wl12xx_vif *wlvif;

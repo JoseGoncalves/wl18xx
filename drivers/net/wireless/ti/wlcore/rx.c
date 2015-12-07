@@ -215,6 +215,50 @@ static int wl1271_rx_handle_data(struct wl1271 *wl, u8 *data, u32 length,
 	return is_data;
 }
 
+static
+void wl18xx_rx_get_fw_rates(struct wl1271 *wl, u8 hlid)
+{
+	u8 fw_rate = wl->links[hlid].fw_rate;
+	u8 band;
+	u8 channel_type;
+	s8 rate = 0;
+
+	if (fw_rate > CONF_HW_RATE_INDEX_MAX) {
+		wl1271_error("wl18xx_rx_get_fw_rates: last Tx rate invalid: %d", fw_rate);
+		return;
+	}
+
+	/* wlvif is NULL for global links --> No need for rate update for these links */
+	if (!wl->links[hlid].wlvif)
+		return;
+
+	band = wl->links[hlid].wlvif->band;
+	channel_type = wl->links[hlid].wlvif->channel_type;
+
+	if (fw_rate <= CONF_HW_RATE_INDEX_54MBPS) {
+		rate = fw_rate;
+		if (band == IEEE80211_BAND_5GHZ)
+			rate -= CONF_HW_RATE_INDEX_6MBPS;
+	} else {
+		rate = fw_rate - CONF_HW_RATE_INDEX_MCS0;
+
+		/* SGI modifier is counted as a separate rate */
+		if (fw_rate >= CONF_HW_RATE_INDEX_MCS7_SGI)
+			rate--;
+		if (fw_rate == CONF_HW_RATE_INDEX_MCS15_SGI)
+			rate--;
+
+		if (fw_rate > CONF_HW_RATE_INDEX_MCS7_SGI) {
+			if (channel_type == NL80211_CHAN_HT40MINUS ||
+			    channel_type == NL80211_CHAN_HT40PLUS) {
+				/* adjustment needed for range 0-7 */
+				rate -= 8;
+			}
+		}
+	}
+	wl->links[hlid].drv_rate = rate;
+}
+
 int wlcore_rx(struct wl1271 *wl, struct wl_fw_status *status)
 {
 	unsigned long active_hlids[BITS_TO_LONGS(WLCORE_MAX_LINKS)] = {0};
@@ -224,9 +268,19 @@ int wlcore_rx(struct wl1271 *wl, struct wl_fw_status *status)
 	u32 rx_counter;
 	u32 pkt_len, align_pkt_len;
 	u32 pkt_offset, des;
-	u8 hlid;
+	u8 hlid, rate;
 	enum wl_rx_buf_align rx_align;
 	int ret = 0;
+
+	/* update rates per link */
+	rate = status->counters.tx_last_rate[0];
+	hlid = status->counters.tx_last_rate[1];
+
+	if (hlid < WLCORE_MAX_LINKS) {
+		wl->links[hlid].fw_rate = rate;
+
+		wl18xx_rx_get_fw_rates(wl, hlid);
+	}
 
 	while (drv_rx_counter != fw_rx_counter) {
 		buf_size = 0;
