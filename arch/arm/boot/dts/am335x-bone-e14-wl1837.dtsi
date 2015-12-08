@@ -1,0 +1,156 @@
+/*
+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	model = "TI AM335x BeagleBone Black";
+	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+
+	wlan_en_reg: fixedregulator@1 {
+		compatible = "regulator-fixed";
+		regulator-name = "wlan-en-regulator";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		gpio = <&gpio0 2 0>;
+		enable-active-high;
+	};
+
+	kim {
+		compatible = "kim";
+		nshutdown_gpio = <3>; /* Bank0, pin3 */
+		dev_name = "/dev/ttyO1";
+		flow_cntrl = <1>;
+		baud_rate = <3000000>;
+	};
+
+	btwilink {
+		compatible = "btwilink";
+	};
+};
+
+&am33xx_pinmux {
+	pinctrl-0 = <&clkout2_pin>;
+
+	uart1_pins_default: pinmux_uart1_pins_default {
+		pinctrl-single,pins = <
+			0x180 ( PIN_INPUT  | MUX_MODE0 ) /* (D16) uart1_rxd.uart1_rxd */
+			0x184 ( PIN_OUTPUT | MUX_MODE0 ) /* (D15) uart1_txd.uart1_txd */
+			0x178 ( PIN_INPUT  | MUX_MODE0 ) /* (D18) uart1_ctsn.uart1_ctsn */
+			0x17c ( PIN_OUTPUT_PULLDOWN | MUX_MODE0 ) /* (D17) uart1_rtsn.uart1_rtsn */
+		>;
+	};
+
+	uart1_pins_sleep: pinmux_uart1_pins_sleep {
+		pinctrl-single,pins = <
+			0x180 ( PIN_INPUT  | MUX_MODE0 ) /* (D16) uart1_rxd.uart1_rxd */
+			0x184 ( PIN_OUTPUT | MUX_MODE0 ) /* (D15) uart1_txd.uart1_txd */
+			0x178 ( PIN_INPUT  | MUX_MODE0 ) /* (D18) uart1_ctsn.uart1_ctsn */
+			0x17c ( PIN_OUTPUT | MUX_MODE0 ) /* (D17) uart1_rtsn.uart1_rtsn  */
+		>;
+	};
+
+	bt_pins_default: pinmux_bt_pins_default {
+		pinctrl-single,pins = <
+			0x154 (PIN_OUTPUT_PULLUP   | MUX_MODE7) /* gpio0_3 BT_EN*/
+		>;
+	};
+
+	bt_pins_sleep: pinmux_bt_pins_sleep {
+		pinctrl-single,pins = <
+			0x154 (PIN_OUTPUT_PULLUP   | MUX_MODE7) /* gpio0_3 BT_EN*/
+		>;
+	};
+
+	mmc2_pins: pinmux_mmc2_pins {
+		pinctrl-single,pins = <
+			0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
+			0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
+			0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
+			0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
+			0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
+			0x0c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
+		>;
+	};
+
+	mmc2_pins_sleep: pinmux_mmc2_pins_sleep {
+		pinctrl-single,pins = <
+			0x80 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_csn1.mmc1_clk */
+			0x84 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_csn2.mmc1_cmd */
+			0x00 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad0.mmc1_dat0 */
+			0x04 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad1.mmc1_dat1 */
+			0x08 (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad2.mmc1_dat2 */
+			0x0c (PIN_INPUT_PULLDOWN | MUX_MODE7) /* gpmc_ad3.mmc1_dat3 */
+		>;
+	};
+
+	wlan_pins_default: pinmux_wlan_pins_default {
+		pinctrl-single,pins = <
+			0x150 (PIN_OUTPUT_PULLUP   | MUX_MODE7) /* gpio0_2 WL_EN*/
+			0x164 (PIN_INPUT_PULLUP    | MUX_MODE7) /* gpio0_7 WL_IRQ*/
+			0x7C  (PIN_OUTPUT_PULLUP   | MUX_MODE0) /* gpmc_csn0.gpio1_29 Cape_Buffer_EN*/
+			0x90  (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_advn_ale.gpio2_2  Audio_sync*/
+		>;
+	};
+
+	wlan_pins_sleep: pinmux_wlan_pins_sleep {
+		pinctrl-single,pins = <
+			0x150 (PIN_OUTPUT_PULLUP   | MUX_MODE7) /* gpio0_2 WL_EN*/
+			0x164 (PIN_INPUT_PULLUP    | MUX_MODE7) /* gpio0_7 WL_IRQ*/
+			0x7C  (PIN_OUTPUT_PULLUP   | MUX_MODE0) /* gpmc_csn0.gpio1_29 Cape_Buffer_EN*/
+			0x90  (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpmc_advn_ale.gpio2_2  Audio_sync*/
+		>;
+	};
+
+	i2c1_pins: pinmux_i2c1_pins {
+		pinctrl-single,pins = <
+			0x15c (PIN_INPUT_PULLUP | MUX_MODE2)	/* i2c1 */
+			0x158 (PIN_INPUT_PULLUP | MUX_MODE2)	/* i2c1 */
+		>;
+	};
+};
+
+&uart1 {
+	pinctrl-names = "default","sleep";
+	pinctrl-0 = <&uart1_pins_default &bt_pins_default>;
+	pinctrl-1 = <&uart1_pins_sleep &bt_pins_sleep>;
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+
+	status = "okay";
+	clock-frequency = <400000>;
+
+	tps1: tps@24 {
+		reg = <0x24>;
+	};
+};
+
+&mmc2 {
+	status = "okay";
+	vmmc-supply = <&wlan_en_reg>;
+	bus-width = <4>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&mmc2_pins &wlan_pins_default>;
+	pinctrl-1 = <&mmc2_pins_sleep &wlan_pins_sleep>;
+	ti,non-removable;
+	ti,needs-special-hs-handling;
+	cap-power-off-card;
+	keep-power-in-suspend;
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	wlcore: wlcore@0 {
+		compatible = "ti,wl1835";
+		reg = <2>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
+	};
+};
