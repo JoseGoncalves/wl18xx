@@ -20,10 +20,10 @@
 		enable-active-high;
 	};
 
-	kim {
-		compatible = "kim";
+	tibt {
+		compatible = "tibt";
 		nshutdown_gpio = <3>; /* Bank0, pin3 */
-		dev_name = "/dev/ttyO1";
+		dev_name = "/dev/ttyS1";
 		flow_cntrl = <1>;
 		baud_rate = <3000000>;
 	};
