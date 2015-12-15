@@ -5859,6 +5859,17 @@ out:
 	return ret;
 }
 
+static int wlcore_op_get_rate_info(struct ieee80211_hw *hw,
+			struct ieee80211_sta *sta)
+{
+	struct wl1271 *wl = hw->priv;
+	struct wl1271_station *wl_sta = (struct wl1271_station *)sta->drv_priv;
+	u8 hlid = wl_sta->hlid;
+
+	/* return in units of 100kbps */
+	return ((int)(wl->links[hlid].fw_rate_mbps * 10));
+}
+
 /* can't be const, mac80211 writes to this */
 static struct ieee80211_rate wl1271_rates[] = {
 	{ .bitrate = 10,
@@ -6041,6 +6052,7 @@ static const struct ieee80211_ops wl1271_ops = {
 	.switch_vif_chanctx = wlcore_op_switch_vif_chanctx,
 	.sta_rc_update = wlcore_op_sta_rc_update,
 	.sta_statistics = wlcore_op_sta_statistics,
+	.get_rate_info = wlcore_op_get_rate_info,
 	CFG80211_TESTMODE_CMD(wl1271_tm_cmd)
 };
 

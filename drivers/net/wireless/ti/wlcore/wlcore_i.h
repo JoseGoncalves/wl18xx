@@ -287,6 +287,9 @@ struct wl1271_link {
 	/* the last fw rate index we used for this link */
 	u8 fw_rate_idx;
 
+	/* the last fw rate [Mbps] we used for this link */
+	u8 fw_rate_mbps;
+
 	/* The wlvif this link belongs to. Might be null for global links */
 	struct wl12xx_vif *wlvif;
 
