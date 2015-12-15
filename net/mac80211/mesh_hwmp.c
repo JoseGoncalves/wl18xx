@@ -12,6 +12,7 @@
 #include <asm/unaligned.h>
 #include "wme.h"
 #include "mesh.h"
+#include "driver-ops.h"
 
 #define TEST_FRAME_LEN	8192
 #define MAX_METRIC	0xffffffff
@@ -330,7 +331,12 @@ static u32 airtime_link_metric_get(struct ieee80211_local *local,
 		return MAX_METRIC;
 
 	sta_set_rate_info_tx(sta, &sta->tx_stats.last_rate, &rinfo);
-	rate = cfg80211_calculate_bitrate(&rinfo);
+
+	rate = drv_get_rate_info(local, &sta->sta);
+
+	if (rate == -1)
+		rate = cfg80211_calculate_bitrate(&rinfo);
+
 	if (WARN_ON(!rate))
 		return MAX_METRIC;
 
