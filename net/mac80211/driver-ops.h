@@ -1166,4 +1166,8 @@ static inline void drv_wake_tx_queue(struct ieee80211_local *local,
 	local->ops->wake_tx_queue(&local->hw, &txq->txq);
 }
 
+int drv_mesh_get_mbps_estimation(struct ieee80211_local *local,
+	       struct ieee80211_sta *sta,
+		   int *rate);
+
 #endif /* __MAC80211_DRIVER_OPS */

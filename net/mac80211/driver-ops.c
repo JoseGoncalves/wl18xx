@@ -307,3 +307,16 @@ int drv_ampdu_action(struct ieee80211_local *local,
 
 	return ret;
 }
+
+int drv_mesh_get_mbps_estimation(struct ieee80211_local *local,
+	       struct ieee80211_sta *sta,
+		   int *rate)
+{
+	int ret = -EOPNOTSUPP;
+
+	if (local->ops->mesh_get_mbps_estimation)
+		ret = local->ops->mesh_get_mbps_estimation(&local->hw, sta, rate);
+
+	return ret;
+}
+
