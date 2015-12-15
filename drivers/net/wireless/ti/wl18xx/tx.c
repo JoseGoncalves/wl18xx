@@ -160,6 +160,8 @@ void wl18xx_tx_immediate_complete(struct wl1271 *wl)
 	if (hlid < WLCORE_MAX_LINKS) {
 		wl->links[hlid].fw_rate_idx =
 				wl->fw_status->counters.tx_last_rate;
+		wl->links[hlid].fw_rate_mbps =
+				wl->fw_status->counters.tx_last_rate_mbps;
 	}
 
 	/* freed Tx descriptors */

@@ -5857,6 +5857,25 @@ out:
 	return ret;
 }
 
+static int wlcore_op_mesh_get_mbps_estimation(struct ieee80211_hw *hw,
+			struct ieee80211_sta *sta,
+			int *rate)
+{
+	struct wl1271 *wl = hw->priv;
+	struct wl1271_station *wl_sta = (struct wl1271_station *)sta->drv_priv;
+	u8 hlid = wl_sta->hlid;
+	int ret = 1;
+
+	/* return in units of 100kbps */
+	*rate = (wl->links[hlid].fw_rate_mbps * 10);
+
+	/* if rate is 0 then we have no data for caller */
+	if (!*rate)
+		ret = -ENODATA;
+
+	return ret;
+}
+
 /* can't be const, mac80211 writes to this */
 static struct ieee80211_rate wl1271_rates[] = {
 	{ .bitrate = 10,
@@ -6039,6 +6058,7 @@ static const struct ieee80211_ops wl1271_ops = {
 	.switch_vif_chanctx = wlcore_op_switch_vif_chanctx,
 	.sta_rc_update = wlcore_op_sta_rc_update,
 	.sta_statistics = wlcore_op_sta_statistics,
+	.mesh_get_mbps_estimation = wlcore_op_mesh_get_mbps_estimation,
 	CFG80211_TESTMODE_CMD(wl1271_tm_cmd)
 };
 
