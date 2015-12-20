@@ -582,6 +582,11 @@ struct mesh_path *mesh_path_add(struct ieee80211_sub_if_data *sdata,
 	new_mpath->exp_time = jiffies;
 	spin_lock_init(&new_mpath->state_lock);
 	init_timer(&new_mpath->timer);
+	setup_timer(&new_mpath->mesh_delayed_prep_timer,
+		    mesh_delayed_prep_timer, (unsigned long)new_mpath);
+	memset(&new_mpath->mesh_delayed_prep_info, 0,
+	       sizeof(new_mpath->mesh_delayed_prep_info));
+
 
 	hlist_add_head_rcu(&new_node->list, bucket);
 	if (atomic_inc_return(&tbl->entries) >=
@@ -782,6 +787,7 @@ static void mesh_path_node_reclaim(struct rcu_head *rp)
 	struct ieee80211_sub_if_data *sdata = node->mpath->sdata;
 
 	del_timer_sync(&node->mpath->timer);
+	del_timer_sync(&node->mpath->mesh_delayed_prep_timer);
 	atomic_dec(&sdata->u.mesh.mpaths);
 	kfree(node->mpath);
 	kfree(node);
@@ -1042,6 +1048,7 @@ static void mesh_path_node_free(struct hlist_node *p, bool free_leafs)
 	hlist_del_rcu(p);
 	if (free_leafs) {
 		del_timer_sync(&mpath->timer);
+		del_timer_sync(&mpath->mesh_delayed_prep_timer);
 		kfree(mpath);
 	}
 	kfree(node);
