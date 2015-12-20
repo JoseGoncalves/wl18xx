@@ -558,16 +558,31 @@ static void hwmp_preq_frame_process(struct ieee80211_sub_if_data *sdata,
 
 	if (ether_addr_equal(target_addr, sdata->vif.addr)) {
 		mhwmp_dbg(sdata, "PREQ is for us\n");
-		forward = false;
-		reply = true;
-		target_metric = 0;
-		if (time_after(jiffies, ifmsh->last_sn_update +
-					net_traversal_jiffies(sdata)) ||
-		    time_before(jiffies, ifmsh->last_sn_update)) {
-			++ifmsh->sn;
-			ifmsh->last_sn_update = jiffies;
+
+		/* Save latest PREP Info */
+		rcu_read_lock();
+		mpath = mesh_path_lookup(sdata, orig_addr);
+		if (mpath) {
+			memcpy(mpath->mesh_delayed_prep_info.sa, mgmt->sa, 6);
+			memcpy(mpath->mesh_delayed_prep_info.preq_elem,
+			       preq_elem, 37);
+
+			if (!mpath->mesh_delayed_prep_info.is_timer_set) {
+				mpath->mesh_delayed_prep_info.is_timer_set =
+					true;
+				mhwmp_dbg(sdata, "start delayed_reply timer\n");
+				mod_timer(&mpath->mesh_delayed_prep_timer,
+					  (jiffies +
+					  msecs_to_jiffies(
+					  IEEE80211_MESH_DELAYED_PREP_INTERVAL
+					  )));
+			}
+		} else {
+			mhwmp_dbg(sdata, "error retrieving mpath for %pM\n",
+				  orig_addr);
 		}
-		target_sn = ifmsh->sn;
+		rcu_read_unlock();
+		return;
 	} else if (is_broadcast_ether_addr(target_addr) &&
 		   (target_flags & IEEE80211_PREQ_TO_FLAG)) {
 		rcu_read_lock();
@@ -1252,4 +1267,49 @@ void mesh_path_tx_root_frame(struct ieee80211_sub_if_data *sdata)
 		mhwmp_dbg(sdata, "Proactive mechanism not supported\n");
 		return;
 	}
+}
+
+void mesh_delayed_prep_timer(unsigned long data)
+{
+	struct mesh_path *mpath = (struct mesh_path *)data;
+	struct ieee80211_sub_if_data *sdata = mpath->sdata;
+	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
+	const u8 *target_addr, *orig_addr;
+	u8  ttl;
+	u32 orig_sn, target_sn, lifetime, target_metric;
+	const u8 *preq_elem = mpath->mesh_delayed_prep_info.preq_elem;
+	const u8 *da = mpath->mesh_delayed_prep_info.sa;
+
+	/* Update target SN, if present */
+	target_addr = PREQ_IE_TARGET_ADDR(preq_elem);
+	orig_addr = PREQ_IE_ORIG_ADDR(preq_elem);
+	target_sn = PREQ_IE_TARGET_SN(preq_elem);
+	orig_sn = PREQ_IE_ORIG_SN(preq_elem);
+
+	target_metric = 0;
+	if (time_after(jiffies, ifmsh->last_sn_update +
+				net_traversal_jiffies(sdata)) ||
+	    time_before(jiffies, ifmsh->last_sn_update)) {
+		++ifmsh->sn;
+		ifmsh->last_sn_update = jiffies;
+	}
+	target_sn = ifmsh->sn;
+
+	/* Send PREP */
+	lifetime = PREQ_IE_LIFETIME(preq_elem);
+	ttl = ifmsh->mshcfg.element_ttl;
+	if (ttl != 0) {
+		mhwmp_dbg(sdata, "replying to the PREQ from %pM\n", orig_addr);
+		mesh_path_sel_frame_tx(MPATH_PREP, 0, orig_addr,
+				       orig_sn, 0, target_addr,
+				       target_sn, da, 0, ttl,
+				       lifetime, target_metric, 0,
+				       sdata);
+	} else {
+		ifmsh->mshstats.dropped_frames_ttl++;
+	}
+
+	/* Zero info until next PREQ is received */
+	memset(&mpath->mesh_delayed_prep_info, 0,
+	       sizeof(mpath->mesh_delayed_prep_info));
 }
