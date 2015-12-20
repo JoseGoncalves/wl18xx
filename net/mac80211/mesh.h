@@ -70,6 +70,18 @@ enum mesh_deferred_task_flags {
 };
 
 /**
+ * struct mesh_delayed_prep - mesh STA delayed timer information
+ * @is_timer_set: indicates if the timer for this STA was already set
+ * @sa: source address
+ * @preq_elem: path request element
+ */
+struct mesh_delayed_prep {
+	bool is_timer_set;
+	u8 sa[6];
+	u8 preq_elem[37];/* Right now we support just 1 destination and no AE */
+};
+
+/**
  * struct mesh_path - mac80211 mesh path structure
  *
  * @dst: mesh path destination mac address
@@ -77,6 +89,7 @@ enum mesh_deferred_task_flags {
  * @next_hop: mesh neighbor to which frames for this destination will be
  *	forwarded
  * @timer: mesh path discovery timer
+ * @mesh_delayed_prep_timer: mesh delayed path reply timer
  * @frame_queue: pending queue for frames sent to this destination while the
  *	path is unresolved
  * @sn: target sequence number
@@ -95,6 +108,7 @@ enum mesh_deferred_task_flags {
  * @last_preq_to_root: Timestamp of last PREQ sent to root
  * @is_root: the destination station of this path is a root node
  * @is_gate: the destination station of this path is a mesh gate
+ * @mesh_delayed_prep_info: the info needed to send the delayed path reply
  *
  *
  * The combination of dst and sdata is unique in the mesh path table. Since the
@@ -108,6 +122,7 @@ struct mesh_path {
 	struct ieee80211_sub_if_data *sdata;
 	struct sta_info __rcu *next_hop;
 	struct timer_list timer;
+	struct timer_list mesh_delayed_prep_timer;
 	struct sk_buff_head frame_queue;
 	struct rcu_head rcu;
 	u32 sn;
@@ -123,6 +138,8 @@ struct mesh_path {
 	unsigned long last_preq_to_root;
 	bool is_root;
 	bool is_gate;
+	/* mesh STA delayed timer information */
+	struct mesh_delayed_prep mesh_delayed_prep_info;
 };
 
 /**
@@ -191,6 +208,8 @@ struct mesh_rmc {
 };
 
 #define IEEE80211_MESH_HOUSEKEEPING_INTERVAL (60 * HZ)
+
+#define IEEE80211_MESH_DELAYED_PREP_INTERVAL 50 /* In msec */
 
 #define MESH_PATH_EXPIRE (600 * HZ)
 
@@ -266,6 +285,7 @@ int mesh_nexthop_lookup(struct ieee80211_sub_if_data *sdata,
 int mesh_nexthop_resolve(struct ieee80211_sub_if_data *sdata,
 			 struct sk_buff *skb);
 void mesh_path_start_discovery(struct ieee80211_sub_if_data *sdata);
+void mesh_delayed_prep_timer(unsigned long data);
 struct mesh_path *mesh_path_lookup(struct ieee80211_sub_if_data *sdata,
 				   const u8 *dst);
 struct mesh_path *mpp_path_lookup(struct ieee80211_sub_if_data *sdata,
