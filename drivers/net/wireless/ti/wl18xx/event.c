@@ -242,6 +242,8 @@ int wl18xx_process_mailbox_events(struct wl1271 *wl)
 						 mbox->sc_ssid,
 						 mbox->sc_pwd_len,
 						 mbox->sc_pwd);
+	if (vector & FW_LOGGER_INDICATION)
+		wlcore_event_fw_logger(wl);
 
 	if (vector & RX_BA_WIN_SIZE_CHANGE_EVENT_ID) {
 		struct wl12xx_vif *wlvif;
