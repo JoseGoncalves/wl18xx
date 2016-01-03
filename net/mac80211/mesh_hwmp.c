@@ -323,7 +323,7 @@ static u32 airtime_link_metric_get(struct ieee80211_local *local,
 	int device_constant = 1 << ARITH_SHIFT;
 	int test_frame_len = TEST_FRAME_LEN << ARITH_SHIFT;
 	int s_unit = 1 << ARITH_SHIFT;
-	int rate, err;
+	int rate, err, ret;
 	u32 tx_time, estimated_retx;
 	u64 result;
 
@@ -332,9 +332,12 @@ static u32 airtime_link_metric_get(struct ieee80211_local *local,
 
 	sta_set_rate_info_tx(sta, &sta->tx_stats.last_rate, &rinfo);
 
-	rate = drv_get_rate_info(local, &sta->sta);
 
-	if (rate == -1)
+	ret = drv_mesh_get_mbps_estimation(local, &sta->sta, &rate);
+	/* if driver has no data for us or has no function
+	 * for this op, use original implementation
+	 */
+	if (ret < 0)
 		rate = cfg80211_calculate_bitrate(&rinfo);
 
 	if (WARN_ON(!rate))
