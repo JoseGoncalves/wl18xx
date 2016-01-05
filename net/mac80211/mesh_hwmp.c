@@ -17,6 +17,7 @@
 #define TEST_FRAME_LEN	8192
 #define MAX_METRIC	0xffffffff
 #define ARITH_SHIFT	8
+#define PREQ_REPEAT	2
 
 #define MAX_PREQ_QUEUE_LEN	64
 
@@ -538,7 +539,7 @@ static void hwmp_preq_frame_process(struct ieee80211_sub_if_data *sdata,
 	struct mesh_path *mpath = NULL;
 	const u8 *target_addr, *orig_addr;
 	const u8 *da;
-	u8 target_flags, ttl, flags;
+	u8 target_flags, ttl, flags, i;
 	u32 orig_sn, target_sn, lifetime, target_metric;
 	bool reply = false;
 	bool forward = true;
@@ -656,10 +657,13 @@ static void hwmp_preq_frame_process(struct ieee80211_sub_if_data *sdata,
 			target_sn = PREQ_IE_TARGET_SN(preq_elem);
 		}
 
-		mesh_path_sel_frame_tx(MPATH_PREQ, flags, orig_addr,
-				       orig_sn, target_flags, target_addr,
-				       target_sn, da, hopcount, ttl, lifetime,
-				       orig_metric, preq_id, sdata);
+		for (i = 0; i < PREQ_REPEAT; i++) {
+			mesh_path_sel_frame_tx(MPATH_PREQ, flags, orig_addr,
+						   orig_sn, target_flags, target_addr,
+						   target_sn, da, hopcount, ttl, lifetime,
+						   orig_metric, preq_id, sdata);
+		}
+
 		if (!is_multicast_ether_addr(da))
 			ifmsh->mshstats.fwded_unicast++;
 		else
@@ -798,7 +802,7 @@ static void hwmp_rann_frame_process(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_local *local = sdata->local;
 	struct sta_info *sta;
 	struct mesh_path *mpath;
-	u8 ttl, flags, hopcount;
+	u8 ttl, flags, hopcount, i;
 	const u8 *orig_addr;
 	u32 orig_sn, metric, metric_txsta, interval;
 	bool root_is_gate;
@@ -876,10 +880,12 @@ static void hwmp_rann_frame_process(struct ieee80211_sub_if_data *sdata,
 	ttl--;
 
 	if (ifmsh->mshcfg.dot11MeshForwarding) {
+		for (i = 0; i < PREQ_REPEAT; i++) {
 		mesh_path_sel_frame_tx(MPATH_RANN, flags, orig_addr,
 				       orig_sn, 0, NULL, 0, broadcast_addr,
 				       hopcount, ttl, interval,
 				       metric + metric_txsta, 0, sdata);
+		}
 	}
 
 	rcu_read_unlock();
@@ -1017,7 +1023,7 @@ void mesh_path_start_discovery(struct ieee80211_sub_if_data *sdata)
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 	struct mesh_preq_queue *preq_node;
 	struct mesh_path *mpath;
-	u8 ttl, target_flags = 0;
+	u8 ttl, target_flags = 0, i;
 	const u8 *da;
 	u32 lifetime;
 
@@ -1082,9 +1088,13 @@ void mesh_path_start_discovery(struct ieee80211_sub_if_data *sdata)
 
 	spin_unlock_bh(&mpath->state_lock);
 	da = (mpath->is_root) ? mpath->rann_snd_addr : broadcast_addr;
-	mesh_path_sel_frame_tx(MPATH_PREQ, 0, sdata->vif.addr, ifmsh->sn,
-			       target_flags, mpath->dst, mpath->sn, da, 0,
-			       ttl, lifetime, 0, ifmsh->preq_id++, sdata);
+
+	for (i = 0; i < PREQ_REPEAT; i++) {
+		mesh_path_sel_frame_tx(MPATH_PREQ, 0, sdata->vif.addr, ifmsh->sn,
+					   target_flags, mpath->dst, mpath->sn, da, 0,
+					   ttl, lifetime, 0, ifmsh->preq_id++, sdata);
+	}
+
 	mod_timer(&mpath->timer, jiffies + mpath->discovery_timeout);
 
 enddiscovery:
@@ -1239,17 +1249,19 @@ void mesh_path_tx_root_frame(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 	u32 interval = ifmsh->mshcfg.dot11MeshHWMPRannInterval;
-	u8 flags, target_flags = 0;
+	u8 flags, target_flags = 0, i;
 
 	flags = (ifmsh->mshcfg.dot11MeshGateAnnouncementProtocol)
 			? RANN_FLAG_IS_GATE : 0;
 
 	switch (ifmsh->mshcfg.dot11MeshHWMPRootMode) {
 	case IEEE80211_PROACTIVE_RANN:
+		for (i = 0; i < PREQ_REPEAT; i++) {
 		mesh_path_sel_frame_tx(MPATH_RANN, flags, sdata->vif.addr,
 				       ++ifmsh->sn, 0, NULL, 0, broadcast_addr,
 				       0, ifmsh->mshcfg.element_ttl,
 				       interval, 0, 0, sdata);
+		}
 		break;
 	case IEEE80211_PROACTIVE_PREQ_WITH_PREP:
 		flags |= IEEE80211_PREQ_PROACTIVE_PREP_FLAG;
@@ -1257,11 +1269,15 @@ void mesh_path_tx_root_frame(struct ieee80211_sub_if_data *sdata)
 		interval = ifmsh->mshcfg.dot11MeshHWMPactivePathToRootTimeout;
 		target_flags |= IEEE80211_PREQ_TO_FLAG |
 				IEEE80211_PREQ_USN_FLAG;
-		mesh_path_sel_frame_tx(MPATH_PREQ, flags, sdata->vif.addr,
-				       ++ifmsh->sn, target_flags,
-				       (u8 *) broadcast_addr, 0, broadcast_addr,
-				       0, ifmsh->mshcfg.element_ttl, interval,
-				       0, ifmsh->preq_id++, sdata);
+
+		for (i = 0; i < PREQ_REPEAT; i++) {
+			mesh_path_sel_frame_tx(MPATH_PREQ, flags, sdata->vif.addr,
+						   ++ifmsh->sn, target_flags,
+						   (u8 *) broadcast_addr, 0, broadcast_addr,
+						   0, ifmsh->mshcfg.element_ttl, interval,
+						   0, ifmsh->preq_id++, sdata);
+		}
+
 		break;
 	default:
 		mhwmp_dbg(sdata, "Proactive mechanism not supported\n");
