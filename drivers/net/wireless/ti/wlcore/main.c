@@ -5861,7 +5861,7 @@ out:
 
 static int wlcore_op_mesh_get_mbps_estimation(struct ieee80211_hw *hw,
 			struct ieee80211_sta *sta,
-			int * rate)
+			int *rate)
 {
 	struct wl1271 *wl = hw->priv;
 	struct wl1271_station *wl_sta = (struct wl1271_station *)sta->drv_priv;
@@ -5872,7 +5872,7 @@ static int wlcore_op_mesh_get_mbps_estimation(struct ieee80211_hw *hw,
 	*rate = (wl->links[hlid].fw_rate_mbps * 10);
 
 	/* if rate is 0 then we have no data for caller */
-	if (!rate)
+	if (!*rate)
 		ret = -ENODATA;
 
 	return ret;
