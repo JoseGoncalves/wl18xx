@@ -18,6 +18,7 @@
 #define MAX_METRIC	0xffffffff
 #define ARITH_SHIFT	8
 #define PREQ_REPEAT	2
+#define MPATH_EXPIRE_SLAVE	1000
 
 #define MAX_PREQ_QUEUE_LEN	64
 
@@ -401,7 +402,7 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 	case MPATH_PREQ:
 		orig_addr = PREQ_IE_ORIG_ADDR(hwmp_ie);
 		orig_sn = PREQ_IE_ORIG_SN(hwmp_ie);
-		orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie);
+		orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie) + MPATH_EXPIRE_SLAVE;
 		orig_metric = PREQ_IE_METRIC(hwmp_ie);
 		break;
 	case MPATH_PREP:
