@@ -1191,7 +1191,7 @@ int mesh_nexthop_lookup(struct ieee80211_sub_if_data *sdata,
 	if (next_hop) {
 		memcpy(hdr->addr1, next_hop->sta.addr, ETH_ALEN);
 		memcpy(hdr->addr2, sdata->vif.addr, ETH_ALEN);
-		ieee80211_mps_set_frame_flags(sdata, next_hop, hdr);
+//		ieee80211_mps_set_frame_flags(sdata, next_hop, hdr);
 		err = 0;
 	}
 
