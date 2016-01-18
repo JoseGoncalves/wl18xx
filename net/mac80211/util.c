@@ -2332,10 +2332,7 @@ u8 *ieee80211_ie_build_ht_oper(u8 *pos, struct ieee80211_sta_ht_cap *ht_cap,
 	ht_oper->operation_mode = cpu_to_le16(prot_mode);
 	ht_oper->stbc_param = 0x0000;
 
-	/* It seems that Basic MCS set and Supported MCS set
-	   are identical for the first 10 bytes */
 	memset(&ht_oper->basic_set, 0, 16);
-	memcpy(&ht_oper->basic_set, &ht_cap->mcs, 10);
 
 	return pos + sizeof(struct ieee80211_ht_operation);
 }
