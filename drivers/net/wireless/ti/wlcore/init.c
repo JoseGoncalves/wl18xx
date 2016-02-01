@@ -439,6 +439,7 @@ int wl1271_init_ap_rates(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 	int i, ret;
 	struct conf_tx_rate_class rc;
 	u32 supported_rates;
+    struct ieee80211_vif *vif = wl12xx_wlvif_to_vif(wlvif);
 
 	wl1271_debug(DEBUG_AP, "AP basic rate set: 0x%x",
 		     wlvif->basic_rate_set);
@@ -446,16 +447,26 @@ int wl1271_init_ap_rates(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 	if (wlvif->basic_rate_set == 0)
 		return -EINVAL;
 
-	rc.enabled_rates = wlvif->basic_rate_set;
-	rc.long_retry_limit = 10;
-	rc.short_retry_limit = 10;
-	rc.aflags = 0;
+	/*In order to handle mesh PREQ/PREP loss, increase retry limit
+		and use OFDM basic rates (mgmt policy)*/
+	if (ieee80211_vif_is_mesh(vif)) {
+		rc.enabled_rates = wlvif->basic_rate_set;
+		rc.long_retry_limit = 30;
+		rc.short_retry_limit = 30;
+		rc.aflags = 0;
+	}
+	else {
+		rc.enabled_rates = wlvif->basic_rate_set;
+		rc.long_retry_limit = 10;
+		rc.short_retry_limit = 10;
+		rc.aflags = 0;
+	}
 	ret = wl1271_acx_ap_rate_policy(wl, &rc, wlvif->ap.mgmt_rate_idx);
 	if (ret < 0)
 		return ret;
 
 	/* use the min basic rate for AP broadcast/multicast */
-	rc.enabled_rates = wl1271_tx_min_rate_get(wl, wlvif->basic_rate_set);
+    rc.enabled_rates = wlvif->basic_rate;
 	rc.short_retry_limit = 10;
 	rc.long_retry_limit = 10;
 	rc.aflags = 0;
