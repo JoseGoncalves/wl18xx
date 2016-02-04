@@ -380,7 +380,7 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 	struct mesh_path *mpath;
 	struct sta_info *sta;
 	bool fresh_info;
-	const u8 *orig_addr, *ta;
+	const u8 *orig_addr, *ta, *dest_addr;
 	u32 orig_sn, orig_metric;
 	unsigned long orig_lifetime, exp_time;
 	u32 last_hop_metric, new_metric;
@@ -400,9 +400,14 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 	switch (action) {
 	case MPATH_PREQ:
 		orig_addr = PREQ_IE_ORIG_ADDR(hwmp_ie);
+		dest_addr = PREQ_IE_TARGET_ADDR(hwmp_ie);
 		orig_sn = PREQ_IE_ORIG_SN(hwmp_ie);
-		orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie);
 		orig_metric = PREQ_IE_METRIC(hwmp_ie);
+		if (ether_addr_equal(orig_addr, sdata->vif.addr)&&
+				ether_addr_equal(dest_addr, mgmt->sa))
+			orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie);
+		else
+			orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie) + 2*sdata->u.mesh.mshcfg.path_refresh_time;
 		break;
 	case MPATH_PREP:
 		/* Originator here refers to the MP that was the target in the
@@ -410,10 +415,14 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 		 * so that we can easily use a single function to gather path
 		 * information from both PREQ and PREP frames.
 		 */
+		dest_addr = PREP_IE_ORIG_ADDR(hwmp_ie);
 		orig_addr = PREP_IE_TARGET_ADDR(hwmp_ie);
 		orig_sn = PREP_IE_TARGET_SN(hwmp_ie);
-		orig_lifetime = PREP_IE_LIFETIME(hwmp_ie);
 		orig_metric = PREP_IE_METRIC(hwmp_ie);
+		if (ether_addr_equal(dest_addr, sdata->vif.addr))
+			orig_lifetime = PREP_IE_LIFETIME(hwmp_ie);
+		else
+			orig_lifetime = PREP_IE_LIFETIME(hwmp_ie) + 2*sdata->u.mesh.mshcfg.path_refresh_time;
 		break;
 	default:
 		rcu_read_unlock();
