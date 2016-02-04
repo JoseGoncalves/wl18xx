@@ -610,11 +610,20 @@ static void hwmp_preq_frame_process(struct ieee80211_sub_if_data *sdata,
 		mpath = mesh_path_lookup(sdata, orig_addr);
 		if (mpath) {
 			if (flags & IEEE80211_PREQ_PROACTIVE_PREP_FLAG) {
-				reply = true;
-				target_addr = sdata->vif.addr;
-				target_sn = ++ifmsh->sn;
-				target_metric = 0;
-				ifmsh->last_sn_update = jiffies;
+                               memcpy(mpath->mesh_delayed_prep_info.sa, mgmt->sa, 6);
+                               memcpy(mpath->mesh_delayed_prep_info.preq_elem,
+                                      preq_elem, 37);
+
+                               if (!mpath->mesh_delayed_prep_info.is_timer_set) {
+                                       mpath->mesh_delayed_prep_info.is_timer_set =
+                                               true;
+                                       mhwmp_dbg(sdata, "start delayed_reply timer\n");
+                                       mod_timer(&mpath->mesh_delayed_prep_timer,
+                                                 (jiffies +
+                                                 msecs_to_jiffies(
+                                                 IEEE80211_MESH_DELAYED_PREP_INTERVAL
+                                                 )));
+				}
 			}
 			if (root_is_gate)
 				mesh_path_add_gate(mpath);
@@ -1330,6 +1339,10 @@ void mesh_delayed_prep_timer(unsigned long data)
 	orig_addr = PREQ_IE_ORIG_ADDR(preq_elem);
 	target_sn = PREQ_IE_TARGET_SN(preq_elem);
 	orig_sn = PREQ_IE_ORIG_SN(preq_elem);
+
+	if(is_broadcast_ether_addr(target_addr)){
+		target_addr = sdata->vif.addr;
+	}
 
 	target_metric = 0;
 	if (time_after(jiffies, ifmsh->last_sn_update +
