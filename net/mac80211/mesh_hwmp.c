@@ -472,6 +472,17 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 					fresh_info = false;
 				}
 			}
+			/*Check if we got PREQ that the next hop is different from the current transmitter
+			 * this might a wrong switch ! don't just override the path
+			 * validate that the path is actually better before doing so. */
+			if ((action == MPATH_PREQ) &&
+				(mpath->next_hop->addr) &&
+				(memcmp(mpath->next_hop->addr, mgmt->sa, ETH_ALEN)) &&
+			    (mpath->metric < new_metric) &&
+				(!SN_GT((orig_sn-1),mpath->sn))){
+				fresh_info = false;
+				process = false;
+			}
 		} else {
 			mpath = mesh_path_add(sdata, orig_addr);
 			if (IS_ERR(mpath)) {
