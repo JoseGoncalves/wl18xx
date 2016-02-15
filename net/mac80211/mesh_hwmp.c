@@ -603,7 +603,6 @@ static void hwmp_preq_frame_process(struct ieee80211_sub_if_data *sdata,
 				  orig_addr);
 		}
 		rcu_read_unlock();
-		return;
 	} else if (is_broadcast_ether_addr(target_addr) &&
 		   (target_flags & IEEE80211_PREQ_TO_FLAG)) {
 		rcu_read_lock();
