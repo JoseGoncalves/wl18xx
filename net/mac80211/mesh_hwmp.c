@@ -1051,7 +1051,7 @@ void mesh_path_start_discovery(struct ieee80211_sub_if_data *sdata)
 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
 	struct mesh_preq_queue *preq_node;
 	struct mesh_path *mpath;
-	u8 ttl, target_flags = 0, i;
+	u8 ttl, target_flags = 1, i;
 	const u8 *da;
 	u32 lifetime;
 
@@ -1108,11 +1108,6 @@ void mesh_path_start_discovery(struct ieee80211_sub_if_data *sdata)
 		spin_unlock_bh(&mpath->state_lock);
 		goto enddiscovery;
 	}
-
-	if (preq_node->flags & PREQ_Q_F_REFRESH)
-		target_flags |= IEEE80211_PREQ_TO_FLAG;
-	else
-		target_flags &= ~IEEE80211_PREQ_TO_FLAG;
 
 	spin_unlock_bh(&mpath->state_lock);
 	da = (mpath->is_root) ? mpath->rann_snd_addr : broadcast_addr;
