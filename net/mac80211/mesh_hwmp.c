@@ -425,9 +425,11 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 	switch (action) {
 	case MPATH_PREQ:
 		orig_addr = PREQ_IE_ORIG_ADDR(hwmp_ie);
+		dest_addr = PREQ_IE_TARGET_ADDR(hwmp_ie);
 		orig_sn = PREQ_IE_ORIG_SN(hwmp_ie);
 		orig_metric = PREQ_IE_METRIC(hwmp_ie);
-		if (ether_addr_equal(orig_addr, sdata->vif.addr))
+		if (ether_addr_equal(orig_addr, sdata->vif.addr)&&
+				ether_addr_equal(dest_addr, mgmt->sa))
 			orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie);
 		else
 			orig_lifetime = PREQ_IE_LIFETIME(hwmp_ie) + 2*sdata->u.mesh.mshcfg.path_refresh_time;
