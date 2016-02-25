@@ -1425,6 +1425,8 @@ struct ieee802_11_elems {
 	const u8 *opmode_notif;
 	const struct ieee80211_sec_chan_offs_ie *sec_chan_offs;
 	const struct ieee80211_mesh_chansw_params_ie *mesh_chansw_params_ie;
+	const u8 *vendor_specific;
+
 
 	/* length of them, respectively */
 	u8 ext_capab_len;
@@ -1442,6 +1444,7 @@ struct ieee802_11_elems {
 	u8 prep_len;
 	u8 perr_len;
 	u8 country_elem_len;
+	u8 vendor_specific_len;
 
 	/* whether a parse error occurred while retrieving these elements */
 	bool parse_error;
