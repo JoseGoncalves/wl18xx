@@ -2290,12 +2290,13 @@ static u8 wl12xx_get_role_type(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 static int wl12xx_init_vif_data(struct wl1271 *wl, struct ieee80211_vif *vif)
 {
 	struct wl12xx_vif *wlvif = wl12xx_vif_to_data(vif);
+    enum nl80211_iftype iftype = ieee80211_vif_type_p2p(vif);
 	int i;
 
 	/* clear everything but the persistent data */
 	memset(wlvif, 0, offsetof(struct wl12xx_vif, persistent));
 
-	switch (ieee80211_vif_type_p2p(vif)) {
+	switch (iftype) {
 	case NL80211_IFTYPE_P2P_CLIENT:
 		wlvif->p2p = 1;
 		/* fall-through */
@@ -2342,13 +2343,14 @@ static int wl12xx_init_vif_data(struct wl1271 *wl, struct ieee80211_vif *vif)
 		for (i = 0; i < CONF_TX_MAX_AC_COUNT; i++)
 			wl12xx_allocate_rate_policy(wl,
 						&wlvif->ap.ucast_rate_idx[i]);
-		wlvif->basic_rate_set = CONF_TX_ENABLED_RATES;
-		/*
-		 * TODO: check if basic_rate shouldn't be
-		 * wl1271_tx_min_rate_get(wl, wlvif->basic_rate_set);
-		 * instead (the same thing for STA above).
-		*/
-		wlvif->basic_rate = CONF_TX_ENABLED_RATES;
+
+		/* For mesh set default basic rate set to OFDM basic rate set only*/
+		if (iftype == NL80211_IFTYPE_MESH_POINT)
+			wlvif->basic_rate_set = CONF_TX_OFDM_BASIC_RATES;
+		else
+			wlvif->basic_rate_set = CONF_TX_ENABLED_RATES;
+
+		wlvif->basic_rate = wl1271_tx_min_rate_get(wl, CONF_TX_ENABLED_RATES);
 		/* TODO: this seems to be used only for STA, check it */
 		wlvif->rate_set = CONF_TX_ENABLED_RATES;
 	}
