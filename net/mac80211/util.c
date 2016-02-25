@@ -904,6 +904,9 @@ u32 ieee802_11_parse_elems_crc(const u8 *start, size_t len, bool action,
 						elems->wmm_param_len = elen;
 					}
 				}
+			} else {
+				elems->vendor_specific = (void *)pos;
+				elems->vendor_specific_len = elen;
 			}
 			break;
 		case WLAN_EID_RSN:
