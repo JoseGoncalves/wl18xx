@@ -417,6 +417,9 @@ int wl1271_ap_init_templates(struct wl1271 *wl, struct ieee80211_vif *vif)
 	if (ret < 0)
 		return ret;
 
+	ret = wl1271_cmd_build_arp_rsp(wl, wlvif);
+	if (ret < 0)
+		return ret;
 	/*
 	 * when operating as AP we want to receive external beacons for
 	 * configuring ERP protection.

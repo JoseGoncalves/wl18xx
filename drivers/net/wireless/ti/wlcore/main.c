@@ -1628,6 +1628,7 @@ static int wl1271_configure_wowlan(struct wl1271 *wl,
 				   struct cfg80211_wowlan *wow)
 {
 	int i, ret;
+	struct wl12xx_vif *wlvif;
 
 	if (!wow || wow->any || !wow->n_patterns) {
 		ret = wl1271_acx_default_rx_filter_enable(wl, 0,
@@ -1685,6 +1686,18 @@ static int wl1271_configure_wowlan(struct wl1271 *wl,
 
 	ret = wl1271_acx_default_rx_filter_enable(wl, 1, FILTER_DROP);
 
+	/*  When AP goes into suspend+wow, turn ARP-Filtering,
+	 *  and Auto-ARP features on.
+	 *  This essentially means that the firmware will filter
+	 *  out any ARP requests that are not meant for us and
+	 *  will respond to ARP requests that are.
+	 */
+	wl12xx_for_each_wlvif_ap(wl, wlvif) {
+		ret = wl1271_acx_arp_ip_filter(wl, wlvif,
+						(ACX_ARP_FILTER_ARP_FILTERING |
+						 ACX_ARP_FILTER_AUTO_ARP),
+						 wlvif->ip_addr);
+	}
 out:
 	return ret;
 }
@@ -1784,6 +1797,8 @@ static void wl1271_configure_resume(struct wl1271 *wl, struct wl12xx_vif *wlvif)
 
 	} else if (is_ap) {
 		ret = wl1271_acx_beacon_filter_opt(wl, wlvif, false);
+		/* Turn Auto-ARP and ARP filter off */
+		ret = wl1271_acx_arp_ip_filter(wl, wlvif, 0, wlvif->ip_addr);
 	}
 }
 
@@ -4309,6 +4324,16 @@ static void wl1271_bss_info_changed_ap(struct wl1271 *wl,
 			wl1271_warning("Set ht information failed %d", ret);
 			goto out;
 		}
+	}
+
+	/* Save IP address into wlvif to be used later for WoW */
+	if ((changed & BSS_CHANGED_ARP_FILTER)) {
+		if (bss_conf->arp_addr_cnt == 1) {
+			__be32 addr = bss_conf->arp_addr_list[0];
+			wlvif->ip_addr = addr;
+		}
+		if (ret < 0)
+			goto out;
 	}
 
 out:

@@ -311,8 +311,9 @@ static int ieee80211_ifa_changed(struct notifier_block *nb,
 	sdata = IEEE80211_DEV_TO_SUB_IF(ndev);
 	bss_conf = &sdata->vif.bss_conf;
 
-	/* ARP filtering is only supported in managed mode */
-	if (sdata->vif.type != NL80211_IFTYPE_STATION)
+	/* ARP filtering is only supported in STA/AP mode */
+	if ((sdata->vif.type != NL80211_IFTYPE_STATION) &&
+			(sdata->vif.type != NL80211_IFTYPE_AP))
 		return NOTIFY_DONE;
 
 	idev = __in_dev_get_rtnl(sdata->dev);
@@ -334,7 +335,9 @@ static int ieee80211_ifa_changed(struct notifier_block *nb,
 	bss_conf->arp_addr_cnt = c;
 
 	/* Configure driver only if associated (which also implies it is up) */
-	if (ifmgd->associated)
+	if (((sdata->vif.type == NL80211_IFTYPE_STATION) &&
+			(ifmgd->associated)) ||
+			(sdata->vif.type == NL80211_IFTYPE_AP))
 		ieee80211_bss_info_change_notify(sdata,
 						 BSS_CHANGED_ARP_FILTER);
 
