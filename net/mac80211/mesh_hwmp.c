@@ -17,7 +17,7 @@
 #define TEST_FRAME_LEN	8192
 #define MAX_METRIC	0xffffffff
 #define ARITH_SHIFT	8
-#define PREQ_SEND_AMOUNT	2
+#define PREQ_SEND_AMOUNT	3
 
 #define MAX_PREQ_QUEUE_LEN	64
 
