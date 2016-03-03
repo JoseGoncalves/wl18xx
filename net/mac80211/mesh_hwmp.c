@@ -505,10 +505,10 @@ static u32 hwmp_route_info_get(struct ieee80211_sub_if_data *sdata,
 			 * this might a wrong switch ! don't just override the path
 			 * validate that the path is actually better before doing so. */
 			if ((action == MPATH_PREQ) &&
-				(orig_mpath->next_hop->addr) &&
+				(orig_mpath->next_hop) &&
 				(memcmp(orig_mpath->next_hop->addr, mgmt->sa, ETH_ALEN)) &&
 			    (orig_mpath->metric < new_metric) &&
-				(!SN_GT((orig_sn-1),orig_mpath->sn))){
+				(!SN_GT((orig_sn-2),orig_mpath->sn))){
 				fresh_info = false;
 				process = false;
 			}
