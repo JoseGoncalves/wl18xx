@@ -898,5 +898,6 @@
 &rtc {
 	system-power-controller;
 };
-#include "am335x-evm-wow.dtsi"  
+/* Overlay the wilink8 with Wake On Wlan support */
+#include "am335x-evm-wow.dtsi"
 
