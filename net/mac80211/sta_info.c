@@ -976,11 +976,22 @@ int sta_info_destroy_addr_bss(struct ieee80211_sub_if_data *sdata,
 {
 	struct sta_info *sta;
 	int ret;
+	bool dec_links = false;
 
 	mutex_lock(&sdata->local->sta_mtx);
 	sta = sta_info_get_bss(sdata, addr);
+
+	if (sdata->vif.type == NL80211_IFTYPE_MESH_POINT &&
+	    sta->mesh->plink_state == NL80211_PLINK_ESTAB)
+		dec_links = true;
+
 	ret = __sta_info_destroy(sta);
 	mutex_unlock(&sdata->local->sta_mtx);
+
+	if (dec_links) {
+		mesh_plink_dec_estab_count(sdata);
+		ieee80211_mbss_info_change_notify(sdata, BSS_CHANGED_BEACON);
+	}
 
 	return ret;
 }
