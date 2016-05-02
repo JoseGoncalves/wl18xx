@@ -1118,7 +1118,11 @@ int wl1271_acx_arp_ip_filter(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 
 	acx->role_id = wlvif->role_id;
 	acx->version = ACX_IPV4_VERSION;
-	acx->enable = enable;
+
+	if (address)
+		acx->enable = enable;
+	else
+		acx->enable = 0;
 
 	if (enable)
 		memcpy(acx->address, &address, ACX_IPV4_ADDR_SIZE);
