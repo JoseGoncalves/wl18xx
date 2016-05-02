@@ -4254,14 +4254,11 @@ static void wl1271_bss_info_changed_ap(struct wl1271 *wl,
 	}
 
 	/* Save IP address into wlvif to be used later for WoW */
-	if ((changed & BSS_CHANGED_ARP_FILTER) ||
-		    (changed & BSS_CHANGED_QOS)) {
+	if (changed & BSS_CHANGED_ARP_FILTER) {
 		if (bss_conf->arp_addr_cnt == 1) {
 			__be32 addr = bss_conf->arp_addr_list[0];
 			wlvif->ip_addr = addr;
 		}
-		if (ret < 0)
-			goto out;
 	}
 
 out:

@@ -334,10 +334,13 @@ static int ieee80211_ifa_changed(struct notifier_block *nb,
 
 	bss_conf->arp_addr_cnt = c;
 
-	/* Configure driver only if associated (which also implies it is up) */
+	/* Configure driver only if associated (which also implies it is up)
+	 * For AP mode, test sdata to see that AP is up
+	 */
 	if (((sdata->vif.type == NL80211_IFTYPE_STATION) &&
 			(ifmgd->associated)) ||
-			(sdata->vif.type == NL80211_IFTYPE_AP))
+			((sdata->vif.type == NL80211_IFTYPE_AP) &&
+			ieee80211_sdata_running(sdata)))
 		ieee80211_bss_info_change_notify(sdata,
 						 BSS_CHANGED_ARP_FILTER);
 
