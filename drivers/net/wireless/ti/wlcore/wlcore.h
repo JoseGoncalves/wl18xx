@@ -183,14 +183,6 @@ struct wl1271_stats {
 	unsigned int excessive_retries;
 };
 
-struct wlcore_time_sync {
-	struct hrtimer timer;
-	int gpio;
-	u32 interval_ms;
-	ktime_t gpio_ktime;
-	ktime_t target_ktime;
-};
-
 struct wl1271 {
 	bool initialized;
 	struct ieee80211_hw *hw;
@@ -515,9 +507,6 @@ struct wl1271 {
 	/* dynamic fw traces */
 	u32 dynamic_fw_traces;
 
-	/* time sync timer */
-	struct wlcore_time_sync time_sync;
-
 	/* time sync zone master */
 	u8 zone_master_mac_addr[ETH_ALEN];
 };
@@ -534,8 +523,6 @@ int wlcore_set_key(struct wl1271 *wl, enum set_key_cmd cmd,
 void wlcore_regdomain_config(struct wl1271 *wl);
 void wlcore_update_inconn_sta(struct wl1271 *wl, struct wl12xx_vif *wlvif,
 			      struct wl1271_station *wl_sta, bool in_conn);
-
-void wlcore_trigger_time_sync(struct wl1271 *wl);
 
 static inline void
 wlcore_set_ht_cap(struct wl1271 *wl, enum ieee80211_band band,

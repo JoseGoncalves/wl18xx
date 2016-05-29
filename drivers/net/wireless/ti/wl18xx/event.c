@@ -20,8 +20,6 @@
  */
 
 #include <net/genetlink.h>
-#include <linux/hrtimer.h>
-#include <linux/ktime.h>
 #include "event.h"
 #include "scan.h"
 #include "conf.h"
@@ -119,40 +117,14 @@ static void wlcore_event_time_sync(struct wl1271 *wl,
 				   u16 tsf_high_msb, u16 tsf_high_lsb,
 				   u16 tsf_low_msb, u16 tsf_low_lsb)
 {
-	ktime_t ktime;
-	u32 clock_low;
-	u32 clock_high;
-	u32 interval_usc;
-	u32 mod_usc;
-	u32 next_tick_usc;
+        u32 clock_low;
+        u32 clock_high;
 
-	/* convert the MSB+LSB to a u32 TSF value */
-	clock_high = (tsf_high_msb << 16) | tsf_high_lsb;
-	clock_low = (tsf_low_msb << 16) | tsf_low_lsb;
+        clock_high = (tsf_high_msb << 16) | tsf_high_lsb;
+        clock_low = (tsf_low_msb << 16) | tsf_low_lsb;
 
-	wl1271_info("TIME_SYNC_EVENT_ID+: clock_high %u, clock low %u",
-		    clock_high, clock_low);
-
-	/* Calculate the next tick */
-	interval_usc = wl->time_sync.interval_ms * USEC_PER_MSEC;
-	mod_usc  = clock_low % interval_usc;
-	next_tick_usc  = interval_usc -  mod_usc;
-
-	/* skip the current interval if it's too close in time */
-	if (next_tick_usc < 5000)
-		next_tick_usc = next_tick_usc + interval_usc;
-
-	/* schedule hr timer 200ns before the desired time */
-	ktime = ktime_add_ns(wl->time_sync.gpio_ktime,
-			     NSEC_PER_USEC * (next_tick_usc - 200));
-
-	/* save the actual target time for the next wake-up */
-	wl->time_sync.target_ktime =
-		ktime_add_ns(wl->time_sync.gpio_ktime,
-			     NSEC_PER_USEC * (next_tick_usc));
-
-	/* set the timer */
-	hrtimer_start(&wl->time_sync.timer, ktime, HRTIMER_MODE_ABS);
+        wl1271_info("TIME_SYNC_EVENT_ID: clock_high %u, clock low %u",
+                    clock_high, clock_low);
 }
 
 int wl18xx_process_mailbox_events(struct wl1271 *wl)
