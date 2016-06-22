@@ -467,6 +467,73 @@ static const struct file_operations radar_debug_mode_ops = {
 };
 #endif /* CFG80211_CERTIFICATION_ONUS */
 
+static ssize_t sg_params_write(struct file *file,
+				      const char __user *user_buf,
+				      size_t count, loff_t *ppos)
+{
+	struct wl1271 *wl = file->private_data;
+	struct conf_sg_settings *c = &wl->conf.sg;
+	struct acx_bt_wlan_coex_param *param;
+	u32 attr, value;
+	int ret;
+	char buf[64];
+
+	simple_write_to_buffer(buf, sizeof(buf) - 1, ppos, user_buf, count);
+
+	/* make sure that buf is null terminated */
+	buf[sizeof(buf) - 1] = '\0';
+
+	ret = sscanf(buf, "%u %u", &attr, &value);
+	if (ret != 2) {
+		wl1271_warning("illegal number of inputs!");
+		return -EINVAL;
+	}
+
+	switch (attr) {
+	case WL18XX_CONF_SG_ZIGBEE_COEX:
+		if ((value < 0) || (value > 2)) {
+			wl1271_warning("illegal value for this attribute");
+			return -ERANGE;
+		}
+		break;
+
+	default:
+		wl1271_warning("illegal attribute");
+		return -ERANGE;
+	}
+
+	mutex_lock(&wl->mutex);
+
+	if (unlikely(wl->state != WLCORE_STATE_ON))
+		goto out;
+
+	ret = wl1271_ps_elp_wakeup(wl);
+	if (ret < 0)
+		goto out;
+
+	param = kzalloc(sizeof(*param), GFP_KERNEL);
+	if (!param) {
+		ret = -ENOMEM;
+		goto out;
+	}
+	param->params[attr] = cpu_to_le32(value);
+	param->param_idx = attr;
+	c->params[attr] = cpu_to_le32(value);
+
+	wl1271_cmd_configure(wl, ACX_SG_CFG, param, sizeof(*param));
+
+	wl1271_ps_elp_sleep(wl);
+out:
+	mutex_unlock(&wl->mutex);
+	return count;
+}
+
+static const struct file_operations sg_params_ops = {
+	.write = sg_params_write,
+	.open = simple_open,
+	.llseek = default_llseek,
+};
+
 int wl18xx_debugfs_add_files(struct wl1271 *wl,
 			     struct dentry *rootdir)
 {
@@ -637,6 +704,7 @@ int wl18xx_debugfs_add_files(struct wl1271 *wl,
 	DEBUGFS_ADD(radar_debug_mode, moddir);
 #endif
 	DEBUGFS_ADD(dynamic_fw_traces, moddir);
+	DEBUGFS_ADD(sg_params, moddir);
 
 	return 0;
 
