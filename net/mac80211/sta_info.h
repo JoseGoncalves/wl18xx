@@ -312,6 +312,8 @@ struct mesh_sta {
 
 	enum nl80211_plink_state plink_state;
 	u32 plink_timeout;
+	s8 signal;
+	u8 num_of_peers;
 
 	/* mesh power save */
 	enum nl80211_mesh_power_mode local_pm;

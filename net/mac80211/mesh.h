@@ -255,6 +255,7 @@ void ieee80211s_update_metric(struct ieee80211_local *local,
 void ieee80211_mesh_init_sdata(struct ieee80211_sub_if_data *sdata);
 int ieee80211_start_mesh(struct ieee80211_sub_if_data *sdata);
 void ieee80211_stop_mesh(struct ieee80211_sub_if_data *sdata);
+struct sta_info *mesh_get_low_signal_link(struct ieee80211_sub_if_data *sdata);
 void ieee80211_mesh_root_setup(struct ieee80211_if_mesh *ifmsh);
 const struct ieee80211_mesh_sync_ops *ieee80211_mesh_sync_ops_get(u8 method);
 /* wrapper for ieee80211_bss_info_change_notify() */
@@ -306,7 +307,8 @@ int mesh_gate_num(struct ieee80211_sub_if_data *sdata);
 
 /* Mesh plinks */
 void mesh_neighbour_update(struct ieee80211_sub_if_data *sdata,
-			   u8 *hw_addr, struct ieee802_11_elems *ie);
+			   u8 *hw_addr, struct ieee802_11_elems *elems,
+			   s8 signal);
 bool mesh_peer_accepts_plinks(struct ieee802_11_elems *ie);
 u32 mesh_accept_plinks_update(struct ieee80211_sub_if_data *sdata);
 void mesh_plink_broken(struct sta_info *sta);

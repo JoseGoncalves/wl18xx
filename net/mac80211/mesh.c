@@ -955,6 +955,22 @@ void ieee80211_stop_mesh(struct ieee80211_sub_if_data *sdata)
 	ieee80211_configure_filter(local);
 }
 
+struct sta_info *mesh_get_low_signal_link(struct ieee80211_sub_if_data *sdata)
+{
+	struct ieee80211_local *local = sdata->local;
+	struct sta_info *sta;
+	struct sta_info *res = NULL;
+
+	list_for_each_entry_rcu(sta, &local->sta_list, list) {
+		if ((sta->mesh->num_of_peers > 1) &&
+		    (!res || res->mesh->signal > sta->mesh->signal)) {
+			res = sta;
+		}
+	}
+
+	return res;
+}
+
 static bool
 ieee80211_mesh_process_chnswitch(struct ieee80211_sub_if_data *sdata,
 				 struct ieee802_11_elems *elems, bool beacon)
@@ -1147,7 +1163,8 @@ static void ieee80211_mesh_rx_bcn_presp(struct ieee80211_sub_if_data *sdata,
 		return;
 
 	if (mesh_matches_local(sdata, &elems))
-		mesh_neighbour_update(sdata, mgmt->sa, &elems);
+		mesh_neighbour_update(sdata, mgmt->sa, &elems,
+				      rx_status->signal);
 
 	if (ifmsh->sync_ops)
 		ifmsh->sync_ops->rx_bcn_presp(sdata,
