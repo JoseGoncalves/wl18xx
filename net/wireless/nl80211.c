@@ -5584,6 +5584,52 @@ out_err:
 	return err;
 }
 
+static int nl80211_get_low_signal_mesh(struct sk_buff *skb,
+				       struct genl_info *info)
+{
+	struct cfg80211_registered_device *rdev = info->user_ptr[0];
+	struct net_device *dev = info->user_ptr[1];
+	struct wireless_dev *wdev = dev->ieee80211_ptr;
+	u8 mac_addr[ETH_ALEN];
+	int err = 0;
+	void *hdr;
+	struct sk_buff *msg;
+
+	if (wdev->iftype != NL80211_IFTYPE_MESH_POINT)
+		return -EOPNOTSUPP;
+
+	if (!rdev->ops->get_low_signal_mesh)
+		return -EOPNOTSUPP;
+
+	wdev_lock(wdev);
+	err = rdev_get_low_signal_mesh(rdev, dev, mac_addr);
+	wdev_unlock(wdev);
+
+	if (err)
+		return err;
+
+	/* Draw up a netlink message to send back */
+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+	if (!msg)
+		return -ENOMEM;
+	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
+			     NL80211_CMD_GET_LOW_SIGNAL_MESH);
+	if (!hdr)
+		goto out;
+
+	if (nla_put(msg, NL80211_ATTR_MAC, ETH_ALEN, mac_addr))
+		goto nla_put_failure;
+
+	genlmsg_end(msg, hdr);
+	return genlmsg_reply(msg, info);
+
+nla_put_failure:
+	genlmsg_cancel(msg, hdr);
+out:
+	nlmsg_free(msg);
+	return -ENOBUFS;
+}
+
 #ifdef CONFIG_CFG80211_CRDA_SUPPORT
 static const struct nla_policy reg_rule_policy[NL80211_REG_RULE_ATTR_MAX + 1] = {
 	[NL80211_ATTR_REG_RULE_FLAGS]		= { .type = NLA_U32 },
@@ -10926,6 +10972,13 @@ static const struct genl_ops nl80211_ops[] = {
 		.policy = nl80211_policy,
 		.internal_flags = NL80211_FLAG_NEED_RTNL,
 		/* can be retrieved by unprivileged users */
+	},
+	{
+		.cmd = NL80211_CMD_GET_LOW_SIGNAL_MESH,
+		.doit = nl80211_get_low_signal_mesh,
+		.policy = nl80211_policy,
+		.internal_flags = NL80211_FLAG_NEED_NETDEV_UP |
+		NL80211_FLAG_NEED_RTNL,
 	},
 #ifdef CONFIG_CFG80211_CRDA_SUPPORT
 	{

@@ -349,6 +349,18 @@ static inline int rdev_leave_mesh(struct cfg80211_registered_device *rdev,
 	return ret;
 }
 
+static
+inline int rdev_get_low_signal_mesh(struct cfg80211_registered_device *rdev,
+				    struct net_device *dev,
+				    u8 *mac_addr)
+{
+	int ret;
+        trace_rdev_get_low_signal_mesh(&rdev->wiphy, dev);
+	ret = rdev->ops->get_low_signal_mesh(&rdev->wiphy, dev, mac_addr);
+	trace_rdev_return_int(&rdev->wiphy, ret);
+	return ret;
+}
+
 static inline int rdev_join_ocb(struct cfg80211_registered_device *rdev,
 				struct net_device *dev,
 				struct ocb_setup *setup)
