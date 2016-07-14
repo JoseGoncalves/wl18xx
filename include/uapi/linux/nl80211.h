@@ -1012,6 +1012,7 @@ enum nl80211_commands {
 
 	NL80211_CMD_ABORT_SCAN,
 
+	NL80211_CMD_GET_LOW_SIGNAL_MESH,
 	/* add new commands above here */
 
 	/* used to define NL80211_CMD_MAX below */

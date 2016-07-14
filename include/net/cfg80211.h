@@ -2575,7 +2575,9 @@ struct cfg80211_ops {
 			     const struct mesh_config *conf,
 			     const struct mesh_setup *setup);
 	int	(*leave_mesh)(struct wiphy *wiphy, struct net_device *dev);
-
+	int	(*get_low_signal_mesh)(struct wiphy *wiphy,
+				       struct net_device *dev,
+				       u8 *mac_addr);
 	int	(*join_ocb)(struct wiphy *wiphy, struct net_device *dev,
 			    struct ocb_setup *setup);
 	int	(*leave_ocb)(struct wiphy *wiphy, struct net_device *dev);
