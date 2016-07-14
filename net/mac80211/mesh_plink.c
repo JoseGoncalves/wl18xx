@@ -555,7 +555,8 @@ mesh_sta_info_get(struct ieee80211_sub_if_data *sdata,
  */
 void mesh_neighbour_update(struct ieee80211_sub_if_data *sdata,
 			   u8 *hw_addr,
-			   struct ieee802_11_elems *elems)
+			   struct ieee802_11_elems *elems,
+			   s8 signal)
 {
 	struct sta_info *sta;
 	u32 changed = 0;
@@ -563,6 +564,11 @@ void mesh_neighbour_update(struct ieee80211_sub_if_data *sdata,
 	sta = mesh_sta_info_get(sdata, hw_addr, elems);
 	if (!sta)
 		goto out;
+
+	/* Update neighbour signal level*/
+	sta->mesh->signal = signal;
+	sta->mesh->num_of_peers =
+		(elems->mesh_config->meshconf_form >> 1) & 0x3F;
 
 	if (mesh_peer_accepts_plinks(elems) &&
 	    sta->mesh->plink_state == NL80211_PLINK_LISTEN &&

@@ -1866,6 +1866,23 @@ static int ieee80211_leave_mesh(struct wiphy *wiphy, struct net_device *dev)
 
 	return 0;
 }
+
+static int ieee80211_get_low_signal_mesh(struct wiphy *wiphy,
+					 struct net_device *dev,
+					 u8 *mac_addr)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct sta_info *sta = NULL;
+
+	/* get mesh point that has lowest signal and other mesh links*/
+	sta = mesh_get_low_signal_link(sdata);
+	if (sta) {
+		memcpy(mac_addr, sta->addr, ETH_ALEN);
+		return 0;
+	}
+
+	return -ENXIO;
+}
 #endif
 
 static int ieee80211_change_bss(struct wiphy *wiphy,
@@ -3901,6 +3918,7 @@ const struct cfg80211_ops mac80211_config_ops = {
 	.get_mesh_config = ieee80211_get_mesh_config,
 	.join_mesh = ieee80211_join_mesh,
 	.leave_mesh = ieee80211_leave_mesh,
+	.get_low_signal_mesh = ieee80211_get_low_signal_mesh,
 #endif
 	.join_ocb = ieee80211_join_ocb,
 	.leave_ocb = ieee80211_leave_ocb,
